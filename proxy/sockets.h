@@ -14,3 +14,16 @@ struct file_descriptor_t {
 protected:
     int fd;
 };
+
+struct socket_t: public file_descriptor_t {
+    socket_t(socket_t const&)=delete;
+    socket_t& operator=(socket_t const&)=delete;
+
+    socket_t()=default;
+    socket_t(int fd);
+
+    std::string read(size_t buffer_size);
+    size_t write(std::string const& msg);
+
+    ~socket_t();
+};
