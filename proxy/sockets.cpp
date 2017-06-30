@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <vector>
 
 #include "exceptions.h"
 #include "sockets.h"
@@ -14,6 +15,19 @@ file_descriptor_t::file_descriptor_t():
 file_descriptor_t::file_descriptor_t(int fd):
     fd(fd)
 {}
+
+file_descriptor_t::file_descriptor_t(file_descriptor_t&& rhs):
+    fd(rhs.get_fd())
+{
+    rhs.set_fd(-1);
+}
+
+file_descriptor_t& file_descriptor_t::operator=(file_descriptor_t&& rhs) {
+    fd = rhs.get_fd();
+    rhs.set_fd(-1);
+
+    return *this;
+}
 
 void file_descriptor_t::set_fd(int new_fd) {
     fd = new_fd;

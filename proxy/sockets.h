@@ -4,6 +4,9 @@ struct file_descriptor_t {
     file_descriptor_t& operator=(const file_descriptor_t&)=delete;
     file_descriptor_t(const file_descriptor_t&)=delete;
 
+    file_descriptor_t& operator=(file_descriptor_t&&);
+    file_descriptor_t(file_descriptor_t&&);
+
     file_descriptor_t();
     file_descriptor_t(int fd);
 
@@ -18,6 +21,9 @@ protected:
 struct socket_t: public file_descriptor_t {
     socket_t(socket_t const&)=delete;
     socket_t& operator=(socket_t const&)=delete;
+
+    socket_t(socket_t&&)=default;
+    socket_t& operator=(socket_t&&)=default;
 
     socket_t()=default;
     socket_t(int fd);
