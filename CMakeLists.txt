@@ -8,6 +8,10 @@ set(SRC_LIST
 "proxy/exceptions.h"
 "proxy/sockets.h"
 "proxy/sockets.cpp"
+"proxy/proxy_server.h"
+"proxy/proxy_server.cpp"
+"proxy/event_queue.h"
+"proxy/event_queue.cpp"
 )
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
