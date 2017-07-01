@@ -45,7 +45,7 @@ file_descriptor_t::~file_descriptor_t() {
     if (close(fd) == -1){
         perror("During closing file descriptor some error occured!");
     }
-    std::cout << "File descriptor: " << fd << " closed.\n";
+    std::cout << "File descriptor: " << fd << " closed." << std::endl;
 }
 
 socket_t::socket_t(int fd):

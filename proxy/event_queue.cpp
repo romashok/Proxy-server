@@ -23,7 +23,7 @@ event_queue::event_queue():
 {}
 
 void event_queue::add_event(std::function<void(struct epoll_event&)> handler, int fd, uint32_t events) {
-    std::cout << "Add new event to queue.\n";
+    std::cout << "Add new event to queue." << std::endl;
     handlers[id{fd, events}] = handler;
 
     struct epoll_event ev;
@@ -31,17 +31,17 @@ void event_queue::add_event(std::function<void(struct epoll_event&)> handler, in
     ev.events = events;
 
     if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_ADD, fd, &ev) == -1) {
-        std::cout << "Failed to add new event on fd(" << std::to_string(fd).c_str() << ") to epoll.\n";
+        std::cout << "Failed to add new event on fd(" << std::to_string(fd).c_str() << ") to epoll." << std::endl;
         perror("Failed to add new event to epoll.");
     }
 }
 
 void event_queue::handle_events() {
     int epoll_events_count = epoll_wait(epoll.get_fd(), events_list, EVENTS_LIST_SIZE, -1);
+
     if (epoll_events_count == -1) {
         perror("Epoll wait error!");
     }
-    std::cout << "Epoll wait obtained " << epoll_events_count << " events.\n";
 
     for (int i = 0; i < epoll_events_count; ++i) {
         std::function<void(struct epoll_event&)> handler = handlers[id{events_list[i]}];

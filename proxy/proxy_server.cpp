@@ -51,7 +51,7 @@ proxy_server::proxy_server(uint32_t port):
     queue(),
     is_working(true)
 {
-    std::cout << "Main socket established.\n";
+    std::cout << "Main socket established on fd[" << proxy_socket.get_fd() << "]." << std::endl;
 
     queue.add_event([this](struct epoll_event& ev){std::cout << "Connect attemption!\n";},
                 proxy_socket.get_fd(), EPOLLIN);
@@ -59,7 +59,7 @@ proxy_server::proxy_server(uint32_t port):
 
 
 void proxy_server::run() {
-    std::cout << "Start proxy server!\n";
+    std::cout << "Start proxy server!" << std::endl;
 
     try{
         while(is_working) {
