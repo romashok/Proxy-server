@@ -6,6 +6,8 @@
 
 #include "exceptions.h"
 #include "sockets.h"
+#include <arpa/inet.h>
+#include <unistd.h>
 
 
 file_descriptor_t::file_descriptor_t():
@@ -55,6 +57,19 @@ socket_t::socket_t(int fd):
 socket_t::~socket_t()
 {}
 
+socket_t socket_t::accept(int accept_fd) {
+    sockaddr_in addr;
+    socklen_t len = sizeof(addr);
+
+    int fd = ::accept(accept_fd, (sockaddr*) &addr, &len);
+    if (fd == -1) {
+        throw custom_exception("New client connection error occured!");
+    }
+
+    std::cout << "New client accepted to fd[" << fd << "]." << std::endl;
+    return socket_t(fd);
+}
+
 std::string socket_t::read(size_t buffer_size) {
     std::vector<char> buffer(buffer_size);
     size_t length = recv(fd, buffer.data(),buffer_size, 0);
@@ -75,4 +90,13 @@ size_t socket_t::write(std::string const& msg) {
         throw custom_exception("Write to socket error occured!");
 
     return length;
+}
+
+
+client_t::client_t(int fd):
+        socket(socket_t::accept(fd))
+{}
+
+int client_t::get_fd() const {
+    return socket.get_fd();
 }

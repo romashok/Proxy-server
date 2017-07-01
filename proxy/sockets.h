@@ -28,8 +28,24 @@ struct socket_t: public file_descriptor_t {
     socket_t()=default;
     socket_t(int fd);
 
+    static socket_t accept(int fd);
+
     std::string read(size_t buffer_size);
     size_t write(std::string const& msg);
 
     ~socket_t();
+};
+
+
+struct client_t {
+    client_t(const client_t&) = delete;
+    client_t& operator=(const client_t&) = delete;
+
+    client_t(int fd);
+
+    int get_fd() const;
+
+private:
+    socket_t socket;
+    std::string buffer;
 };
