@@ -35,15 +35,20 @@ void event_queue::add_event(std::function<void(struct epoll_event&)> handler, in
         perror("Failed to add new event to epoll.");
     }
 }
-
-void event_queue::handle_events() {
+int event_queue::get_events_amount() {
     int epoll_events_count = epoll_wait(epoll.get_fd(), events_list, EVENTS_LIST_SIZE, -1);
 
     if (epoll_events_count == -1) {
         perror("Epoll wait error!");
     }
 
-    for (int i = 0; i < epoll_events_count; ++i) {
+    std::cout << "Epoll wait obtained " << epoll_events_count << " events." << std::endl;
+    return epoll_events_count;
+}
+
+
+void event_queue::handle_events(int amount) {
+    for (int i = 0; i < amount; ++i) {
         std::function<void(struct epoll_event&)> handler = handlers[id{events_list[i]}];
         handler(events_list[i]);
     }

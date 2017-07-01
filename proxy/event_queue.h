@@ -13,7 +13,9 @@ struct event_queue
     void add_event(std::function<void(struct epoll_event&)> handler, int fd, uint32_t events);
 //    add_event(struct epoll_event const& ev);
 //    add_event(std::function<void(struct epoll_event const&)> handler, int fd, uint32_t events);
-    void handle_events();
+    int get_events_amount();
+    void handle_events(int amount);
+
     ~event_queue();
 
 private:

@@ -63,7 +63,12 @@ void proxy_server::run() {
 
     try{
         while(is_working) {
-            queue.handle_events();
+            int amount = queue.get_events_amount();
+
+            if (amount == -1)
+                perror("Error occured during getting new epoll events!");
+
+            queue.handle_events(amount);
         }
     } catch (custom_exception& e) {
         std::cout << e.what();
