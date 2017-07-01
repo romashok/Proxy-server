@@ -1,4 +1,8 @@
 #pragma once
+#include <string>
+
+
+const uint32_t BUFFER_SIZE = 20000;
 
 struct file_descriptor_t {
     file_descriptor_t& operator=(const file_descriptor_t&)=delete;
@@ -44,6 +48,12 @@ struct client_t {
     client_t(int fd);
 
     int get_fd() const;
+
+    std::string& get_buffer();
+    void append_to_buffer(std::string& s);
+    size_t get_buffer_size() const;
+    bool is_full_buffer() const;
+
 
 private:
     socket_t socket;
