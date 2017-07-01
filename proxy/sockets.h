@@ -54,7 +54,7 @@ struct client_t {
     size_t get_buffer_size() const;
     bool is_full_buffer() const;
 
-
+    size_t read(size_t buffer_size);
 private:
     socket_t socket;
     std::string buffer;

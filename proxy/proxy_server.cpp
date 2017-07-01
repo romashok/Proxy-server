@@ -53,9 +53,10 @@ proxy_server::proxy_server(uint32_t port):
 {
     std::cout << "Main socket established on fd[" << proxy_socket.get_fd() << "]." << std::endl;
 
-    queue.add_event([this](struct epoll_event& ev){
+    queue.add_event([this](struct epoll_event& ev) {
         std::cout << "New connection!" << std::endl;
         this->connect_client(ev);
+        std::cout << "Now " << clients.size() << "clients are connected!" << std::endl;
     }, proxy_socket.get_fd(), EPOLLIN);
 }
 
@@ -80,6 +81,16 @@ void proxy_server::run() {
 void proxy_server::connect_client(epoll_event &ev) {
     client_t * new_client = new client_t(proxy_socket.get_fd());
     clients[new_client->get_fd()] = std::move(std::unique_ptr<client_t>(new_client));
+
+    queue.add_event([this](struct epoll_event& ev) {
+        this->read_from_client(ev);
+    }, new_client->get_fd(), EPOLLIN);
 }
 
+void proxy_server::read_from_client(struct epoll_event& ev) {
+    struct client_t* client = clients.at(ev.data.fd).get();
+
+    client->read((int)BUFFER_SIZE - (int)client->get_buffer_size());
+    std::cout << "Client data:[" << client->get_buffer() << "]" << std::endl;
+}
 

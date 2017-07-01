@@ -65,8 +65,9 @@ socket_t socket_t::accept(int accept_fd) {
     if (fd == -1) {
         throw custom_exception("New client connection error occured!");
     }
-
     std::cout << "New client accepted to fd[" << fd << "]." << std::endl;
+
+
     return socket_t(fd);
 }
 
@@ -116,4 +117,14 @@ size_t client_t::get_buffer_size() const {
 
 bool client_t::is_full_buffer() const {
     return buffer.size() >= BUFFER_SIZE;
+}
+
+size_t client_t::read(size_t size) {
+    try {
+        std::string s{socket.read(size)};
+        buffer.append(s);
+        return s.size();
+    } catch (...) {
+        return 0;
+    }
 }

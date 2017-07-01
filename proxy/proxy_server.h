@@ -14,6 +14,7 @@ struct proxy_server
     void run();
 
     void connect_client(struct epoll_event& ev);
+    void read_from_client(struct epoll_event& ev);
 private:
     file_descriptor_t proxy_socket;
     event_queue queue;
