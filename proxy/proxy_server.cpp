@@ -61,9 +61,7 @@ proxy_server::proxy_server(uint32_t port):
     std::cout << "Main socket established on fd[" << proxy_socket.get_fd() << "]." << std::endl;
 
     queue.add_event([this](struct epoll_event& ev) {
-        std::cout << "New connection!" << std::endl;
-        this->connect_client(ev);
-        std::cout << "Now " << clients.size() << "clients are connected!" << std::endl;
+        this->connect_client();
     }, proxy_socket.get_fd(), EPOLLIN);
 }
 
@@ -81,13 +79,15 @@ void proxy_server::run() {
             queue.handle_events(amount);
         }
     } catch (custom_exception& e) {
-        std::cout << e.what();
+        std::cout << e.reason();
     }
 }
 
-void proxy_server::connect_client(epoll_event &ev) {
+void proxy_server::connect_client() {
+    std::cout << "New connection! ";
     client_t * new_client = new client_t(proxy_socket.get_fd());
     clients[new_client->get_fd()] = std::move(std::unique_ptr<client_t>(new_client));
+    std::cout << "Client fd [" << new_client->get_fd() << "], total amount now is " << clients.size() << std::endl;
 
     queue.add_event([this](struct epoll_event& ev) {
         this->read_from_client(ev);
@@ -103,7 +103,11 @@ void proxy_server::disconnect_client(struct epoll_event& ev) {
 void proxy_server::read_from_client(struct epoll_event& ev) {
     struct client_t* client = clients.at(ev.data.fd).get();
 
-    client->read((int)BUFFER_SIZE - (int)client->get_buffer_size());
-    std::cout << "Client data:[" << client->get_buffer() << "]" << std::endl;
+    int new_chunk_size = client->read(BUFFER_SIZE); // TODO 1) should read only available data
+    if (new_chunk_size)
+        std::cout << "\nClient ["<< client->get_fd() <<"] data (new " << new_chunk_size << "):[\n" << client->get_buffer() << "]" << std::endl;
+    else
+        disconnect_client(ev);
+
 }
 
