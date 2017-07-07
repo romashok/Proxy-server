@@ -16,6 +16,12 @@ namespace socket_api {
         return fd;
     }
 
+    void make_reusable(int fd) {
+        int enable = 1;
+        if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) == -1)
+            throw custom_exception("Making reusable failed!");
+    }
+
     void bind_socket(int fd, uint16_t port_net, uint32_t addr_net) {
         sockaddr_in addr{};
         addr.sin_family = AF_INET;
@@ -38,6 +44,7 @@ namespace socket_api {
 
     int make_main_socket(uint32_t port) {
         int fd = create_socket(AF_INET, SOCK_STREAM);
+        make_reusable(fd);
         bind_socket(fd, htons(port), INADDR_ANY);
         make_non_blocking(fd);
         start_listen(fd);
