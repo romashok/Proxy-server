@@ -94,6 +94,12 @@ void proxy_server::connect_client(epoll_event &ev) {
     }, new_client->get_fd(), EPOLLIN);
 }
 
+void proxy_server::disconnect_client(struct epoll_event& ev) {
+    std::cout << "Disconnect client [" << ev.data.fd << "]" << std::endl;
+    queue.delete_event(ev);
+    clients.erase(ev.data.fd);
+}
+
 void proxy_server::read_from_client(struct epoll_event& ev) {
     struct client_t* client = clients.at(ev.data.fd).get();
 

@@ -35,6 +35,21 @@ void event_queue::add_event(std::function<void(struct epoll_event&)> handler, in
         perror("Failed to add new event to epoll.");
     }
 }
+
+void event_queue::delete_event(struct epoll_event& ev) {
+    std::cout << "Delete fd [" << ev.data.fd << "] from epoll!" << std::endl;
+
+    auto it = handlers.find(id{ev.data.fd, ev.events});
+    if (it != handlers.end()) {
+        handlers.erase(it);
+
+        // legacy non-NULL ev param with EPOLL_CTL_DEL for kernel before 2.6.9
+        if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_DEL, ev.data.fd, &ev) < 0) {
+            std::cout << "Failed to delete handler of fd [" << ev.data.fd << "]" << std::endl;
+        }
+    }
+}
+
 int event_queue::get_events_amount() {
     int epoll_events_count = epoll_wait(epoll.get_fd(), events_list, EVENTS_LIST_SIZE, -1);
 
