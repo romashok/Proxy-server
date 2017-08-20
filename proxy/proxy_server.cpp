@@ -6,6 +6,7 @@
 
 #include "exceptions.h"
 #include "proxy_server.h"
+#include "http_request.h"
 
 namespace socket_api {
     int create_socket(int domain, int type) {
@@ -109,5 +110,15 @@ void proxy_server::read_from_client(struct epoll_event& ev) {
     else
         disconnect_client(ev);
 
+    if (http_request::is_complete_request(client->get_buffer())) {
+        std::cout << "Got complited request!" << std::endl;
+        std::unique_ptr<http_request> request(new (std::nothrow) http_request(client->get_buffer()));
+
+        if (!request) {
+            std::cout << "Allocation problems for request!";
+            return;
+        }
+
+    }
 }
 

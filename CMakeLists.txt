@@ -12,6 +12,8 @@ set(SRC_LIST
 "proxy/proxy_server.cpp"
 "proxy/event_queue.h"
 "proxy/event_queue.cpp"
+"proxy/http_request.h"
+"proxy/http_request.cpp"
 )
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
