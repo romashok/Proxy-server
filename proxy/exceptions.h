@@ -12,6 +12,10 @@ struct custom_exception: std::exception {
         error_reason(msg)
     {}
 
+    std::string reason() const {
+        return error_reason;
+    }
+
 private:
     std::string error_reason;
 };
