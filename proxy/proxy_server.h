@@ -1,9 +1,10 @@
 #pragma once
+#include <memory>
 
 #include "sockets.h"
+#include "client.h"
 #include "event_queue.h"
 
-#include <memory>
 
 struct proxy_server
 {

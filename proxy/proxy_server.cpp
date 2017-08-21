@@ -85,7 +85,7 @@ void proxy_server::run() {
 }
 
 void proxy_server::connect_client() {
-    std::cout << "New connection! ";
+    std::cout << "===================================================================\nNew connection! ";
     client_t * new_client = new client_t(proxy_socket.get_fd());
     clients[new_client->get_fd()] = std::move(std::unique_ptr<client_t>(new_client));
     std::cout << "Client fd [" << new_client->get_fd() << "], total amount now is " << clients.size() << std::endl;

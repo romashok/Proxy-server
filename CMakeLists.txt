@@ -8,6 +8,8 @@ set(SRC_LIST
 "proxy/exceptions.h"
 "proxy/sockets.h"
 "proxy/sockets.cpp"
+"proxy/client.h"
+"proxy/client.cpp"
 "proxy/proxy_server.h"
 "proxy/proxy_server.cpp"
 "proxy/event_queue.h"
