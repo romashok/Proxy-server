@@ -5,20 +5,17 @@
 
 http_request::http_request(std::string& str):
     header(str),
-    host()
+    host(),
+    path()
 {
-    std::cout << "TODO parse http_request here!" << std::endl;
     parse();
-    modify_first_line();
 }
-
 
 http_request::http_request(const http_request &request):
     header(request.header),
-    host(request.host)
+    host(request.host),
+    path(request.path)
 {}
-
-//http_request::http_request(http_request &&request) {
 
 bool http_request::is_complete_request(const std::string& str) {
     size_t i = str.find("\r\n\r\n");
@@ -33,31 +30,42 @@ bool http_request::is_complete_request(const std::string& str) {
 }
 
 void http_request::parse() {
+    if (!has_host()) return;
+
+    extract_relative_url();
+}
+
+bool http_request::has_host() {
     size_t i = header.find("Host:");
     if (i == std::string::npos) {
         std::cout << "Bad request! No host provided!" << std::endl;
-        return;
+        return false;
     }
 
     i += 6;
     size_t j = header.find("\r\n", i);
     host = header.substr(i, j - i);
     std::cout << "Request host: " << host << std::endl;
+    return true;
 }
 
-void http_request::modify_first_line() {
-    size_t i = header.find("\r\n");
-    i += 2;
+void http_request::extract_relative_url() {
+    size_t i = header.find(" ");
+    size_t j = header.find(" ", i + 1);
 
-    std::string first_line = header.substr(0, i);
-    header = header.substr(i);
+    std::string prefix = header.substr(0, i + 1);
+    std::string url = header.substr(i + 1, j - i - 1);
+    std::string suffix = header.substr(j);
 
-    i = first_line.find(" ");
+    i = url.find(host);
+    if (i != std::string::npos) {
+        url = url.substr(i + host.size());
+        path = url;
+    } else {
+        std::cout << "ERROR: no revative url path" << std::endl;
+    }
 
+    header = prefix + path + suffix;
+    std::cout << "PATH ={" << url << "}" << std::endl;
+    std::cout << "{" << header << "}" << std::endl;
 }
-
-std::string http_request::get_relative_url() {
-    return "revative header";
-}
-
-

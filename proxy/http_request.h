@@ -11,9 +11,10 @@ struct http_request {
 private:
     std::string header;
     std::string host;
+    std::string path;
 
     void parse();
-    void modify_first_line();
-    std::string get_relative_url();
+    bool has_host();
+    void extract_relative_url();
 };
 
