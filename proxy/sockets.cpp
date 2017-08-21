@@ -91,3 +91,40 @@ size_t socket_t::write(std::string const& msg) {
 
     return length;
 }
+
+//=============== PEER ==============
+peer_t::peer_t(int fd):
+        socket(socket_t::accept(fd))
+{}
+
+int peer_t::get_fd() const {
+    return socket.get_fd();
+}
+
+std::string& peer_t::get_buffer() {
+    return buffer;
+}
+
+void peer_t::append_to_buffer(std::string &s) {
+    buffer.append(s);
+}
+
+size_t peer_t::get_buffer_size() const {
+    return buffer.size();
+}
+
+
+bool peer_t::is_full_buffer() const {
+    return buffer.size() >= BUFFER_SIZE;
+}
+
+size_t peer_t::read(size_t size) {
+    try {
+        std::string s{socket.read(size)};
+        buffer.append(s);
+        return s.size();
+    } catch (...) {
+        return 0;
+    }
+}
+

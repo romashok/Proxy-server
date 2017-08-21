@@ -10,6 +10,8 @@ set(SRC_LIST
 "proxy/sockets.cpp"
 "proxy/client.h"
 "proxy/client.cpp"
+"proxy/server.h"
+"proxy/server.cpp"
 "proxy/proxy_server.h"
 "proxy/proxy_server.cpp"
 "proxy/event_queue.h"

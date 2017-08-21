@@ -36,3 +36,24 @@ struct socket_t: public file_descriptor_t {
 
     ~socket_t();
 };
+
+const uint32_t BUFFER_SIZE = 20000;
+
+struct peer_t {
+    peer_t(const peer_t&) = delete;
+    peer_t& operator=(const peer_t&) = delete;
+    peer_t(int fd);
+
+    int get_fd() const;
+
+    std::string& get_buffer();
+    void append_to_buffer(std::string& s);
+    size_t get_buffer_size() const;
+    bool is_full_buffer() const;
+
+    size_t read(size_t buffer_size);
+private:
+    socket_t socket;
+    std::string buffer;
+};
+
