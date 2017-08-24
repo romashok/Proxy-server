@@ -122,18 +122,27 @@ void proxy_server::read_from_client(struct epoll_event& ev) {
         }
 
         if (client->has_server()) {
+            std::cout << "HAS SERVER" << std::endl;
             if (client->get_request_host() == request->get_host()) {
+                std::cout << "SAME SERVER" << std::endl;
                 // todo write to the server
             } else {
+                std::cout << "OTHER SERVER" << std::endl;
                 // todo unbind the server
             }
         } else {
            // todo bind new server
             std::cout << "NO SERVER" << std::endl;
+            request->set_client_fd(client->get_fd());
             resolve(request.get());
             if (request->is_resolved()) {
                 // todo write to server
                 std::cout << "Successfuly resovled!" << std::endl;
+                client->send_msg_to_server();
+                queue.add_event([this](struct epoll_event& ev) {
+                    this->write_to_server(ev);
+                }, client->get_server_fd(), EPOLLOUT);
+                std::cout << "Add server task." << std::endl;
             } else {
                 // todo handle resolve error
                 std::cout << "Resovle error!" << std::endl;
@@ -167,6 +176,28 @@ void proxy_server::resolve(http_request* request) {
     sockaddr server_addr = *server_info->ai_addr;
     freeaddrinfo(server_info);
     request->set_server_addr(server_addr);
+
+    // after resolve. bind server and client
+    struct client_t* client = clients.at(request->get_client_fd()).get();
+    server_addr = std::move(request->get_server_addr());
+    struct server_t* server;
+
+    try {
+        server = new struct server_t(server_addr);
+    } catch (...) {
+
+        std::cout << strerror(errno) << "\nError occured! Can't create server socket." << std::endl;
+    }
+
+    std::cout << "server fd=" << server->get_fd() << std::endl;
+    servers[server->get_fd()] = server;
+    client->bind(server);
+    server->bind(client);
+
     request->set_resolved(true);
 }
 
+void proxy_server::write_to_server(epoll_event& ev) {
+    std::cout << "Writing to server." << std::endl;
+    server_t* server = servers.at(ev.data.fd);
+}
