@@ -19,3 +19,11 @@ server_t::server_t(int fd):
 void server_t::bind(client_t* new_client) {
     client = new_client;
 }
+
+void server_t::set_host(std::string const& request_host) {
+    host = request_host;
+}
+
+std::string server_t::get_host() const noexcept {
+    return host;
+}

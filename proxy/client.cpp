@@ -24,3 +24,12 @@ bool client_t::has_server() const noexcept {
     // todo unique_ptr op::bool
     return server.get() != nullptr;
 }
+
+std::string client_t::get_request_host() const noexcept {
+    if (has_server()) {
+        return server->get_host();
+    } else {
+        std::cerr << "Client has no server.";
+        return nullptr;
+    }
+}

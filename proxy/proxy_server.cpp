@@ -119,6 +119,16 @@ void proxy_server::read_from_client(struct epoll_event& ev) {
             return;
         }
 
+        if (client->has_server()) {
+            if (client->get_request_host() == request->get_host()) {
+                // todo write to the server
+            } else {
+                // todo unbind the server
+            }
+        } else {
+            std::cout << "NO SERVER" << std::endl;
+           // todo bind new server
+        }
 
     }
 }

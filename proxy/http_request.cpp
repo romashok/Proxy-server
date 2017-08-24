@@ -69,3 +69,7 @@ void http_request::extract_relative_url() {
     std::cout << "PATH ={" << url << "}" << std::endl;
     std::cout << "{" << header << "}" << std::endl;
 }
+
+std::string http_request::get_host() const noexcept {
+    return host;
+}

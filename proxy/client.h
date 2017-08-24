@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
+#include <string>
 
 #include "sockets.h"
 #include "server.h"
@@ -10,6 +11,7 @@ struct client_t : peer_t {
 
     void bind(server_t* server);
     bool has_server() const noexcept;
+    std::string get_request_host() const noexcept;
 private:
     std::unique_ptr<struct server_t> server;
 };

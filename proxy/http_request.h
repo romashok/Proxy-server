@@ -8,6 +8,8 @@ struct http_request {
     http_request(const http_request& request);
 
     static bool is_complete_request(const std::string& str);
+
+    std::string get_host() const noexcept;
 private:
     std::string header;
     std::string host;
