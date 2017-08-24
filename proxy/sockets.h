@@ -1,5 +1,8 @@
 #pragma once
 #include <string>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
 struct file_descriptor_t {
     file_descriptor_t& operator=(const file_descriptor_t&)=delete;

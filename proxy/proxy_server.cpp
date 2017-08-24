@@ -1,8 +1,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 
 #include "exceptions.h"
 #include "proxy_server.h"
@@ -126,10 +128,45 @@ void proxy_server::read_from_client(struct epoll_event& ev) {
                 // todo unbind the server
             }
         } else {
-            std::cout << "NO SERVER" << std::endl;
            // todo bind new server
+            std::cout << "NO SERVER" << std::endl;
+            resolve(request.get());
+            if (request->is_resolved()) {
+                // todo write to server
+                std::cout << "Successfuly resovled!" << std::endl;
+            } else {
+                // todo handle resolve error
+                std::cout << "Resovle error!" << std::endl;
+            }
         }
 
     }
+}
+
+
+void proxy_server::resolve(http_request* request) {
+    std::cout << "Resolving host{" << request->get_host() << "}" << std::endl;
+    size_t i = request->get_host().find(":");
+    std::string port = "80";
+    if (i != std::string::npos) {
+        port = request->get_host().substr(i + 1);
+    }
+    std::string new_host_name = request->get_host().substr(0, i);
+
+    struct addrinfo hints, *server_info;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC; // AF_INET for ipv4
+    hints.ai_socktype = SOCK_STREAM;
+
+    if (getaddrinfo(new_host_name.c_str(), port.c_str(), &hints, &server_info) != 0) {
+        std::cout << "RESOLVER: getaddrinfo error!" << std::endl;
+        request->set_resolved(false);
+        return;
+    }
+
+    sockaddr server_addr = *server_info->ai_addr;
+    freeaddrinfo(server_info);
+    request->set_server_addr(server_addr);
+    request->set_resolved(true);
 }
 

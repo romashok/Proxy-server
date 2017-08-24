@@ -4,6 +4,7 @@
 #include "sockets.h"
 #include "client.h"
 #include "event_queue.h"
+#include "http_request.h"
 
 
 struct proxy_server
@@ -24,4 +25,6 @@ private:
     bool is_working;
 
     std::map<uintptr_t, std::unique_ptr<client_t>> clients;
+
+    void resolve(http_request *requst);
 };

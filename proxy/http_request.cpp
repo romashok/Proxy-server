@@ -73,3 +73,20 @@ void http_request::extract_relative_url() {
 std::string http_request::get_host() const noexcept {
     return host;
 }
+
+
+void http_request::set_server_addr(sockaddr addr) {
+    server_addr = addr;
+}
+
+sockaddr http_request::get_server_addr() {
+    return server_addr;
+}
+
+bool http_request::is_resolved() const noexcept {
+    return resolve_state;
+}
+
+void http_request::set_resolved(bool state) noexcept {
+    resolve_state = state;
+}
