@@ -74,6 +74,13 @@ std::string http_request::get_host() const noexcept {
     return host;
 }
 
+void http_request::set_client_fd(int fd) {
+    client_fd = fd;
+}
+
+int http_request::get_client_fd()  const noexcept {
+    return client_fd;
+}
 
 void http_request::set_server_addr(sockaddr addr) {
     server_addr = addr;

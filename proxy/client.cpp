@@ -33,3 +33,21 @@ std::string client_t::get_request_host() const noexcept {
         return nullptr;
     }
 }
+
+void client_t::send_msg_to_server() {
+    if (has_server()) {
+        server->append_to_buffer(buffer);
+        buffer.clear();
+    } else {
+        std::cout << "Client error: No server to write!" << std::endl;
+    }
+}
+
+int client_t::get_server_fd() {
+    if (server) {
+        return server->get_fd();
+    } else {
+        std::cout << "Client error: Get server fd error, no server." << std::endl;
+        throw new custom_exception("No server");
+    }
+}

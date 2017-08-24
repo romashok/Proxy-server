@@ -155,7 +155,7 @@ void proxy_server::resolve(http_request* request) {
 
     struct addrinfo hints, *server_info;
     memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC; // AF_INET for ipv4
+    hints.ai_family = AF_INET; // AF_INET for ipv4 //AF_UNSPEC
     hints.ai_socktype = SOCK_STREAM;
 
     if (getaddrinfo(new_host_name.c_str(), port.c_str(), &hints, &server_info) != 0) {

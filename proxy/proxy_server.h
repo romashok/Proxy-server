@@ -25,6 +25,7 @@ private:
     bool is_working;
 
     std::map<uintptr_t, std::unique_ptr<client_t>> clients;
+    std::map<uintptr_t, server_t*> servers;
 
     void resolve(http_request *requst);
 };

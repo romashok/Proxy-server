@@ -55,7 +55,7 @@ struct peer_t {
     bool is_full_buffer() const;
 
     size_t read(size_t buffer_size);
-private:
+protected:
     socket_t socket;
     std::string buffer;
 };

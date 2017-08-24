@@ -3,6 +3,7 @@
 #include <string>
 
 #include "sockets.h"
+#include "client.h"
 
 struct http_request {
     http_request(std::string& str);
@@ -12,6 +13,8 @@ struct http_request {
 
     std::string get_host() const noexcept;
 
+    void set_client_fd(int fd);
+    int get_client_fd() const noexcept;
     void set_server_addr(struct sockaddr addr);
     sockaddr get_server_addr();
 
@@ -22,6 +25,7 @@ private:
     std::string host;
     std::string path;
 
+    int client_fd;
     struct sockaddr server_addr;
     bool resolve_state;
 
