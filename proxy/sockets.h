@@ -53,8 +53,10 @@ struct peer_t {
     void append_to_buffer(std::string& s);
     size_t get_buffer_size() const;
     bool is_full_buffer() const;
+    bool is_empty_buffer() const noexcept;
 
-    size_t read(size_t buffer_size);
+    size_t read();
+    size_t write();
 protected:
     socket_t socket;
     std::string buffer;

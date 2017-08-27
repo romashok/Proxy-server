@@ -20,6 +20,7 @@ struct proxy_server
 
     void read_from_client(struct epoll_event& ev);
     void write_to_server(struct epoll_event& ev);
+    void read_from_server(struct epoll_event& ev);
 private:
     file_descriptor_t proxy_socket;
     event_queue queue;

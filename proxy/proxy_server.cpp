@@ -106,7 +106,7 @@ void proxy_server::disconnect_client(struct epoll_event& ev) {
 void proxy_server::read_from_client(struct epoll_event& ev) {
     struct client_t* client = clients.at(ev.data.fd).get();
 
-    int new_chunk_size = client->read(BUFFER_SIZE); // TODO 1) should read only available data
+    int new_chunk_size = client->read(); // TODO 1) should read only available data
     if (new_chunk_size)
         std::cout << "\nClient ["<< client->get_fd() <<"] data (new " << new_chunk_size << "):[\n" << client->get_buffer() << "]" << std::endl;
     else
@@ -196,7 +196,33 @@ void proxy_server::resolve(http_request* request) {
 }
 
 void proxy_server::write_to_server(epoll_event& ev) {
-    std::cout << "Writing to server." << std::endl;
+    std::cout << "Writing to server" << std::endl;
     server_t* server = servers.at(ev.data.fd);
-    std::exit(0);
+
+    server->write();
+    if (server->is_empty_buffer()) {
+        // todo delete event{write to server}
+        {
+            std::cout << "delete event{write to server} " << std::endl;
+            struct epoll_event ev;
+            ev.data.fd = server->get_fd();
+            ev.events = EPOLLOUT;
+
+            queue.delete_event(ev);
+        }
+
+        queue.add_event([this](struct epoll_event& ev) {
+            this->read_from_server(ev);
+        }, server->get_fd(), EPOLLIN);
+    }
+}
+
+
+void proxy_server::read_from_server(struct epoll_event& ev) {
+    std::cout << "Reading from server" << std::endl;
+    server_t* server = servers.at(ev.data.fd);
+
+    server->read();
+    std::cout << "ANSWER :{\n" << server->get_buffer() << "}" << std::endl;
+
 }
