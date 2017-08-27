@@ -22,13 +22,13 @@ struct event_queue
 private:
     struct id {
         id();
-        id(int ident, uint32_t events);
+        id(int fd, uint32_t events);
         id(struct epoll_event const& ev);
 
         friend bool operator==(id const&, id const&);
         friend bool operator<(id const&, id const&);
     private:
-        int ident;
+        int fd;
         uint32_t events;
     };
     friend bool operator==(id const&, id const&);

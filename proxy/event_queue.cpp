@@ -73,25 +73,25 @@ event_queue::~event_queue()
 {}
 
 event_queue::id::id():
-    ident(0),
+    fd(0),
     events(0)
 {}
 
-event_queue::id::id(int ident, uint32_t events):
-    ident(ident),
+event_queue::id::id(int fd, uint32_t events):
+    fd(fd),
     events(events)
 {}
 
 event_queue::id::id(const epoll_event &ev) :
-    ident(ev.data.fd),
+    fd(ev.data.fd),
     events(ev.events)
 {}
 
 bool operator==(event_queue::id const& lhs, event_queue::id const& rhs) {
-    return lhs.ident == rhs.ident && lhs.events == rhs.events;
+    return lhs.fd == rhs.fd && lhs.events == rhs.events;
 }
 
 bool operator<(event_queue::id const& lhs, event_queue::id const& rhs) {
-    return lhs.ident <  rhs.ident || (lhs.ident == rhs.ident && lhs.events < rhs.events);
+    return lhs.fd <  rhs.fd || (lhs.fd == rhs.fd && lhs.events < rhs.events);
 }
 
