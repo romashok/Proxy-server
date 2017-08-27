@@ -185,11 +185,9 @@ void proxy_server::resolve(http_request* request) {
     try {
         server = new struct server_t(server_addr);
     } catch (...) {
-
         std::cout << strerror(errno) << "\nError occured! Can't create server socket." << std::endl;
     }
 
-    std::cout << "server fd=" << server->get_fd() << std::endl;
     servers[server->get_fd()] = server;
     client->bind(server);
     server->bind(client);
@@ -200,4 +198,5 @@ void proxy_server::resolve(http_request* request) {
 void proxy_server::write_to_server(epoll_event& ev) {
     std::cout << "Writing to server." << std::endl;
     server_t* server = servers.at(ev.data.fd);
+    std::exit(0);
 }

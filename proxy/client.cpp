@@ -10,7 +10,7 @@
 
 
 client_t::client_t(int fd):
-    peer_t(fd),
+    peer_t(socket_t::accept(fd)),
     server(nullptr)
 {}
 

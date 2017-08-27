@@ -56,7 +56,7 @@ socket_t::socket_t(int fd):
 socket_t::~socket_t()
 {}
 
-socket_t socket_t::accept(int accept_fd) {
+int socket_t::accept(int accept_fd) {
     sockaddr_in addr;
     socklen_t len = sizeof(addr);
 
@@ -67,7 +67,7 @@ socket_t socket_t::accept(int accept_fd) {
     std::cout << "New client accepted to fd[" << fd << "]." << std::endl;
 
 
-    return socket_t(fd);
+    return fd;
 }
 
 std::string socket_t::read(size_t buffer_size) {
@@ -94,7 +94,7 @@ size_t socket_t::write(std::string const& msg) {
 
 //=============== PEER ==============
 peer_t::peer_t(int fd):
-        socket(socket_t::accept(fd))
+        socket(fd)
 {}
 
 int peer_t::get_fd() const {

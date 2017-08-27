@@ -32,7 +32,7 @@ struct socket_t: public file_descriptor_t {
     socket_t()=default;
     socket_t(int fd);
 
-    static socket_t accept(int fd);
+    static int accept(int fd);
 
     std::string read(size_t buffer_size);
     size_t write(std::string const& msg);

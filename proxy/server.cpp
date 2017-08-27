@@ -11,27 +11,19 @@
 #include "client.h"
 #include "server.h"
 
-#define CONNECTION_TIMEOUT 3
-
 namespace socket_api {
     int create_socket(int domain, int type);
     void make_non_blocking(int fd);
 
     void connect_socket(int fd, sockaddr addr) {
-        // TODO TODO TODO solve this nonblocking EINPROGRESS error
-        std::cout << "start conn" << std::endl;
-        if (connect(fd, &addr, sizeof(addr)) == -1) {
-            if (errno != EINPROGRESS) {
-                throw custom_exception("\nConnecting error occurred!");
-            }
+        // TODO solve this nonblocking EINPROGRESS error
+        if (connect(fd, &addr, sizeof(addr)) == -1 && errno != EINPROGRESS) {
+            throw custom_exception("\nConnecting server error occurred!");
         }
     }
 
     int create_server_socket(sockaddr addr) {
-        std::cout << "create" << std::endl;
         int fd = create_socket(AF_INET, SOCK_STREAM);
-
-        std::cout << "non block" << std::endl;
         make_non_blocking(fd);
 
         std::cout << "Connecting to IP: " << inet_ntoa(((sockaddr_in*) &addr)->sin_addr) << std::endl;
