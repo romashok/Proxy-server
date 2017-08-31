@@ -1,7 +1,7 @@
 #pragma once
 
 #include <map>
-#include "sockets.h"
+#include "socket_util.h"
 #include <sys/epoll.h>
 #include <functional>
 #include <unordered_set>
@@ -36,7 +36,7 @@ private:
     friend bool operator==(id const&, id const&);
     friend bool operator<(id const&, id const&);
 
-    file_descriptor_t epoll;
+    fd_t epoll;
     std::map<id,std::function<void(struct epoll_event&)>> handlers;
 
     static const size_t EVENTS_LIST_SIZE = 256;

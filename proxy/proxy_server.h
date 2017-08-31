@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 
-#include "sockets.h"
+#include "socket_util.h"
 #include "client.h"
 #include "event_queue.h"
 #include "http_request.h"
@@ -22,7 +22,7 @@ struct proxy_server
     void read_from_server(struct epoll_event& ev);
     void write_to_client(struct epoll_event& ev);
 private:
-    file_descriptor_t proxy_socket;
+    fd_t proxy_socket;
     event_queue queue;
     bool is_working;
 

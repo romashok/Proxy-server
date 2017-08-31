@@ -6,11 +6,12 @@
 #include <arpa/inet.h>
 
 #include "exceptions.h"
+#include "socket_api.h"
 #include "client.h"
 
 
 client_t::client_t(int fd):
-    peer_t(socket_t::accept(fd)),
+    peer_t(socket_api::accept(fd)),
     server(nullptr)
 {}
 

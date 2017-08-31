@@ -6,8 +6,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(SRC_LIST
 "main.cpp"
 "proxy/exceptions.h"
-"proxy/sockets.h"
-"proxy/sockets.cpp"
+"proxy/socket_util.h"
+"proxy/socket_util.cpp"
+"proxy/socket_api.h"
+"proxy/socket_api.cpp"
 "proxy/client.h"
 "proxy/client.cpp"
 "proxy/server.h"

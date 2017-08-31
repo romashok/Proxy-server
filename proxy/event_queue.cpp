@@ -1,6 +1,6 @@
 #include "event_queue.h"
 #include "exceptions.h"
-#include "sockets.h"
+#include "socket_util.h"
 #include <sys/epoll.h>
 
 // legacy

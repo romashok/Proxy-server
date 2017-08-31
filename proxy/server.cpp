@@ -7,32 +7,10 @@
 #include <fcntl.h>
 
 #include "exceptions.h"
-#include "sockets.h"
 #include "client.h"
 #include "server.h"
 
-namespace socket_api {
-    int create_socket(int domain, int type);
-    void make_non_blocking(int fd);
-
-    void connect_socket(int fd, sockaddr addr) {
-        // TODO solve this nonblocking EINPROGRESS error
-        if (connect(fd, &addr, sizeof(addr)) == -1 && errno != EINPROGRESS) {
-            throw custom_exception("\nConnecting server error occurred!");
-        }
-    }
-
-    int create_server_socket(sockaddr addr) {
-        int fd = create_socket(AF_INET, SOCK_STREAM);
-        make_non_blocking(fd);
-
-        std::cout << "Connecting to IP: " << inet_ntoa(((sockaddr_in*) &addr)->sin_addr) << std::endl;
-        std::cout << "Socket: " << fd << std::endl;
-
-        connect_socket(fd, addr);
-        return fd;
-    }
-}
+#include "socket_api.h"
 
 server_t::server_t(int fd):
         peer_t(fd),
