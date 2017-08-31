@@ -174,7 +174,7 @@ void proxy_server::write_to_server(epoll_event& ev) {
             ev.events = EPOLLOUT;
 
             queue.delete_event(ev);
-            queue.invalidate(server->get_fd());
+            queue.invalidate_event(server->get_fd(), EPOLLOUT);
         }
 
         queue.add_event([this](struct epoll_event& ev) {
@@ -222,7 +222,7 @@ void proxy_server::write_to_client(struct epoll_event& ev) {
         ev.events = EPOLLOUT;
 
         queue.delete_event(ev);
-        queue.invalidate(client->get_fd());
+        queue.invalidate_event(client->get_fd(), EPOLLOUT);
 //        std::exit(0);
     }
 }

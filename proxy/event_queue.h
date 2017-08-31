@@ -1,23 +1,24 @@
 #pragma once
 
-#include <map>
-#include "socket_util.h"
 #include <sys/epoll.h>
 #include <functional>
-#include <unordered_set>
+#include <stdexcept>
+#include <iostream>
+#include <set>
+#include <map>
 
+#include "socket_util.h"
 
 struct event_queue
 {
     event_queue();
 
     void add_event(std::function<void(struct epoll_event&)> handler, int fd, uint32_t events);
-//    add_event(struct epoll_event const& ev);
-//    add_event(std::function<void(struct epoll_event const&)> handler, int fd, uint32_t events);
     void delete_event(struct epoll_event& ev);
+    void invalidate_event(int fd, uint32_t events);
+
     int get_events_amount();
     void handle_events(int amount);
-    void invalidate(int fd);
 
     ~event_queue();
 
@@ -42,5 +43,5 @@ private:
     static const size_t EVENTS_LIST_SIZE = 256;
     struct epoll_event events_list[EVENTS_LIST_SIZE];
 
-    std::unordered_set<int> invalid;
+    std::set<id> invalid_events;
 };

@@ -1,5 +1,4 @@
 #include "event_queue.h"
-#include "exceptions.h"
 #include "socket_util.h"
 #include <sys/epoll.h>
 
@@ -10,8 +9,10 @@ namespace {
     int create_epollfd() {
         int fd = epoll_create(EXPECTED_CLIENTS);
 
-        if (fd == -1)
-            throw custom_exception("During creating epollfd error occured!");
+        if (fd == -1) {
+            perror("create_epollfd");
+            throw std::runtime_error("Create epollfd failed!");
+        }
 
         return fd;
     }
@@ -31,8 +32,8 @@ void event_queue::add_event(std::function<void(struct epoll_event&)> handler, in
     ev.events = events;
 
     if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_ADD, fd, &ev) == -1) {
-        std::cout << "Failed to add new event on fd(" << std::to_string(fd).c_str() << ") to epoll." << std::endl;
         perror("Failed to add new event to epoll.");
+        std::cout << "Failed to add new event on fd(" << std::to_string(fd).c_str() << ") to epoll." << std::endl;
     }
 }
 
@@ -45,33 +46,33 @@ void event_queue::delete_event(struct epoll_event& ev) {
 
         // legacy non-NULL ev param with EPOLL_CTL_DEL for kernel before 2.6.9
         if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_DEL, ev.data.fd, &ev) < 0) {
-            std::cout << "Failed to delete handler of fd [" << ev.data.fd << "]" << std::endl;
+            perror("Failed to delete event from epoll.");
+            std::cout << "Failed to delete from epoll fd [" << ev.data.fd << "]" << std::endl;
         }
     }
 }
 
 
-void event_queue::invalidate(int fd) {
-    invalid.insert(fd);
+void event_queue::invalidate_event(int fd, uint32_t events) {
+    invalid_events.insert(id{fd, events});
 }
 
 int event_queue::get_events_amount() {
     int epoll_events_count = epoll_wait(epoll.get_fd(), events_list, EVENTS_LIST_SIZE, -1);
 
     if (epoll_events_count == -1) {
-        perror("Epoll wait error!");
+        perror("Epoll wait failed!");
     }
 
-//    std::cout << "Epoll wait obtained " << epoll_events_count << " events." << std::endl;
     return epoll_events_count;
 }
 
 
 void event_queue::handle_events(int amount) {
-    invalid.clear();
+    invalid_events.clear();
 
     for (int i = 0; i < amount; ++i) {
-        if (!invalid.count(events_list[i].data.fd)) {
+        if (!invalid_events.count(id{events_list[i].data.fd, events_list[i].events})) {
             std::function<void(struct epoll_event&)> handler = handlers[id{events_list[i]}];
             handler(events_list[i]);
         }
