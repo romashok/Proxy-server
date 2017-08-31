@@ -11,10 +11,35 @@
 
 
 client_t::client_t(int fd):
-    peer_t(socket_api::accept(fd)),
-    server(nullptr)
+    peer_t(fd),
+    server(nullptr),
+    state(WAIT_REQUEST),
+    request(nullptr)
 {}
 
+client_state client_t::get_state() const noexcept {
+    return state;
+}
+
+void client_t::set_state(client_state new_state) {
+    state = new_state;
+}
+
+bool client_t::has_request() const noexcept {
+    return request.get() != nullptr;
+}
+
+bool client_t::create_request() {
+    http_request* new_request = new (std::nothrow) http_request();
+    if (!new_request) return false;
+
+    request.reset(new_request);
+    return true;
+}
+
+http_request* client_t::get_request() const noexcept {
+    return request.get();
+}
 
 void client_t::bind(struct server_t* new_server) {
     server.reset(new_server);
