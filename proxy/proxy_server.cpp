@@ -114,6 +114,15 @@ void proxy_server::read_from_client(struct epoll_event& ev) {
 
     if (http_request::is_complete_request(client->get_buffer())) {
         std::cout << "Got complited request!" << std::endl;
+        {
+            std::cout << "delete event{write to server} " << std::endl;
+            struct epoll_event ev;
+            ev.data.fd = client->get_fd();
+            ev.events = EPOLLIN;
+
+            queue.delete_event(ev);
+        }
+
         std::unique_ptr<http_request> request(new (std::nothrow) http_request(client->get_buffer()));
 
         if (!request) {
@@ -209,6 +218,7 @@ void proxy_server::write_to_server(epoll_event& ev) {
             ev.events = EPOLLOUT;
 
             queue.delete_event(ev);
+            queue.invalidate(server->get_fd());
         }
 
         queue.add_event([this](struct epoll_event& ev) {
@@ -219,10 +229,44 @@ void proxy_server::write_to_server(epoll_event& ev) {
 
 
 void proxy_server::read_from_server(struct epoll_event& ev) {
-    std::cout << "Reading from server" << std::endl;
+//    std::cout << "Reading from server" << std::endl;
     server_t* server = servers.at(ev.data.fd);
 
     server->read();
-    std::cout << "ANSWER :{\n" << server->get_buffer() << "}" << std::endl;
 
+    if (server->get_buffer().find("\r\n0\r\n\r\n") != std::string::npos) {
+        {
+            std::cout << "delete event{read from server} " << std::endl;
+            struct epoll_event ev;
+            ev.data.fd = server->get_fd();
+            ev.events = EPOLLIN;
+
+            queue.delete_event(ev);
+        }
+
+        std::cout << "ANSWER :{\n" << server->get_buffer() << "}" << std::endl;
+        server->sent_msg_to_client();
+
+        queue.add_event([this](struct epoll_event& ev) {
+            this->write_to_client(ev);
+        }, server->get_client_fd(), EPOLLOUT);
+    }
+}
+
+
+void proxy_server::write_to_client(struct epoll_event& ev) {
+    std::cout << "Writing to client" << std::endl;
+    struct client_t* client = clients.at(ev.data.fd).get();
+    client->write();
+
+    if (client->get_buffer().empty()) {
+        std::cout << "delete event{write to client} " << std::endl;
+        struct epoll_event ev;
+        ev.data.fd = client->get_fd();
+        ev.events = EPOLLOUT;
+
+        queue.delete_event(ev);
+        queue.invalidate(client->get_fd());
+//        std::exit(0);
+    }
 }

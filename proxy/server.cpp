@@ -55,3 +55,13 @@ void server_t::set_host(std::string const& request_host) {
 std::string server_t::get_host() const noexcept {
     return host;
 }
+
+
+int server_t::get_client_fd() {
+    return client->get_fd();
+}
+
+void server_t::sent_msg_to_client() {
+    client->append_to_buffer(buffer);
+    buffer.clear();
+}

@@ -6,7 +6,6 @@
 #include "event_queue.h"
 #include "http_request.h"
 
-
 struct proxy_server
 {
     proxy_server(uint32_t port);
@@ -21,6 +20,7 @@ struct proxy_server
     void read_from_client(struct epoll_event& ev);
     void write_to_server(struct epoll_event& ev);
     void read_from_server(struct epoll_event& ev);
+    void write_to_client(struct epoll_event& ev);
 private:
     file_descriptor_t proxy_socket;
     event_queue queue;

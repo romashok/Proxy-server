@@ -4,6 +4,7 @@
 #include "sockets.h"
 #include <sys/epoll.h>
 #include <functional>
+#include <unordered_set>
 
 
 struct event_queue
@@ -16,6 +17,7 @@ struct event_queue
     void delete_event(struct epoll_event& ev);
     int get_events_amount();
     void handle_events(int amount);
+    void invalidate(int fd);
 
     ~event_queue();
 
@@ -39,4 +41,6 @@ private:
 
     static const size_t EVENTS_LIST_SIZE = 256;
     struct epoll_event events_list[EVENTS_LIST_SIZE];
+
+    std::unordered_set<int> invalid;
 };

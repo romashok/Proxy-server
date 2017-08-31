@@ -50,6 +50,11 @@ void event_queue::delete_event(struct epoll_event& ev) {
     }
 }
 
+
+void event_queue::invalidate(int fd) {
+    invalid.insert(fd);
+}
+
 int event_queue::get_events_amount() {
     int epoll_events_count = epoll_wait(epoll.get_fd(), events_list, EVENTS_LIST_SIZE, -1);
 
@@ -57,15 +62,19 @@ int event_queue::get_events_amount() {
         perror("Epoll wait error!");
     }
 
-    std::cout << "Epoll wait obtained " << epoll_events_count << " events." << std::endl;
+//    std::cout << "Epoll wait obtained " << epoll_events_count << " events." << std::endl;
     return epoll_events_count;
 }
 
 
 void event_queue::handle_events(int amount) {
+    invalid.clear();
+
     for (int i = 0; i < amount; ++i) {
-        std::function<void(struct epoll_event&)> handler = handlers[id{events_list[i]}];
-        handler(events_list[i]);
+        if (!invalid.count(events_list[i].data.fd)) {
+            std::function<void(struct epoll_event&)> handler = handlers[id{events_list[i]}];
+            handler(events_list[i]);
+        }
     }
 }
 
