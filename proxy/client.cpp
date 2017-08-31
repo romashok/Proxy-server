@@ -29,8 +29,9 @@ bool client_t::has_request() const noexcept {
     return request.get() != nullptr;
 }
 
-bool client_t::create_request() {
-    http_request* new_request = new (std::nothrow) http_request();
+bool client_t::create_request() noexcept {
+    std::cout << "create new request" << std::endl;
+    http_request* new_request = new (std::nothrow) http_request(get_fd());
     if (!new_request) return false;
 
     request.reset(new_request);
