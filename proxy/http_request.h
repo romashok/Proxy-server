@@ -5,6 +5,8 @@
 #include "socket_util.h"
 #include "client.h"
 
+enum request_state {BAD_REQUEST, HEADER, BODY, COMPLETED, RESOLVING, RESOLVED, REQUESTING};
+
 struct http_request {
     http_request(int fd);
 //    http_request(const http_request& request);
@@ -23,7 +25,6 @@ struct http_request {
 //    bool is_resolved() const noexcept;
 //    void set_resolved(bool state) noexcept;
 
-    enum request_state {BAD_REQUEST, HEADER, BODY, COMPLETED, RESOLVING, RESOLVED, REQUESTING};
 private:
     request_state state;
 

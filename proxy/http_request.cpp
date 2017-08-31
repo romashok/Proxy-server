@@ -15,8 +15,8 @@ http_request::http_request(int fd):
 //    path(rhs.path)
 //{}
 
-http_request::request_state http_request::get_state() const noexcept {
-    return request_state;
+request_state http_request::get_state() const noexcept {
+    return state;
 }
 
 void http_request::append_data(std::string const& str) {
