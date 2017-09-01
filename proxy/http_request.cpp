@@ -2,21 +2,17 @@
 
 #include "http_request.h"
 
-
 http_request::http_request(int fd):
     state(HEADER),
     client_fd(fd)
 {}
 
-//http_request::http_request(const http_request &rhs):
-//    header(rhs.header),
-//    host(rhs.host),
-//    state(rhs.state),
-//    path(rhs.path)
-//{}
-
 request_state http_request::get_state() const noexcept {
     return state;
+}
+
+void http_request::set_state(request_state new_state) noexcept {
+    state = new_state;
 }
 
 void http_request::append_data(std::string const& str) {
@@ -51,6 +47,47 @@ void http_request::append_data(std::string const& str) {
     }
 }
 
+std::string http_request::get_raw_text() const noexcept {
+    std::string raw_request_text{header};
+    if (!body.empty())
+        raw_request_text.append(body);
+
+    return raw_request_text;
+}
+
+bool http_request::is_valid_host() {
+    size_t i = header.find("Host:");
+    if (i == std::string::npos) {
+        state = BAD_REQUEST;
+        std::cout << "Bad request! No host provided!" << std::endl;
+        return false;
+    }
+
+    i += 6;
+    size_t j = header.find("\r\n", i);
+    host = header.substr(i, j - i);
+    std::cout << "Request host: " << host << std::endl;
+    return true;
+}
+
+void http_request::ensure_relative_url() {
+    size_t i = header.find(" ");
+    size_t j = header.find(" ", i + 1);
+
+    std::string prefix = header.substr(0, i + 1);
+    std::string request_url = header.substr(i + 1, j - i - 1);
+    std::string suffix = header.substr(j);
+
+    i = request_url.find(host);
+    if (i != std::string::npos) {
+        url = request_url.substr(i + host.size());
+    } else {
+        std::cout << "INFO: Already relative url" << std::endl;
+    }
+
+    header = prefix + url + suffix;
+}
+
 bool http_request::if_post_or_put() {
     size_t i = header.find("POST"), j = header.find("PUT") ;
     if (i == std::string::npos && j == std::string::npos) return false;
@@ -73,101 +110,18 @@ bool http_request::if_post_or_put() {
     return true;
 }
 
-bool http_request::is_completed() {
-    return state == COMPLETED;
-}
-
-//bool http_request::is_complete_request(const std::string& str) {
-//    size_t i = str.find("\r\n\r\n");
-
-//    if (i == std::string::npos)
-//        return false;
-//    std::string method = str.substr(0, 4);
-//    std::cout <<  method << std::endl;
-//    if ( method != "POST")
-//        return true;
-//    return false;
-//}
-
-//void http_request::parse() {
-//    if (!has_host()) return;
-
-//    extract_relative_url();
-//}
-
-bool http_request::is_valid_host() {
-    size_t i = header.find("Host:");
-    if (i == std::string::npos) {
-        state = BAD_REQUEST;
-        std::cout << "Bad request! No host provided!" << std::endl;
-        return false;
-    }
-
-    i += 6;
-    size_t j = header.find("\r\n", i);
-    host = header.substr(i, j - i);
-    std::cout << "Request host: " << host << std::endl;
-    return true;
-}
-
-//bool http_request::has_host() {
-//    size_t i = header.find("Host:");
-//    if (i == std::string::npos) {
-//        std::cout << "Bad request! No host provided!" << std::endl;
-//        return false;
-//    }
-
-//    i += 6;
-//    size_t j = header.find("\r\n", i);
-//    host = header.substr(i, j - i);
-//    std::cout << "Request host: " << host << std::endl;
-//    return true;
-//}
-
-void http_request::ensure_relative_url() {
-    size_t i = header.find(" ");
-    size_t j = header.find(" ", i + 1);
-
-    std::string prefix = header.substr(0, i + 1);
-    std::string request_url = header.substr(i + 1, j - i - 1);
-    std::string suffix = header.substr(j);
-
-    i = request_url.find(host);
-    if (i != std::string::npos) {
-        url = request_url.substr(i + host.size());
-    } else {
-        std::cout << "INFO: Already relative url" << std::endl;
-    }
-
-    header = prefix + url + suffix;
-//    std::cout << "PATH ={" << url<< "}" << std::endl;
-//    std::cout << "{" << header << "}" << std::endl;
-}
-
 std::string http_request::get_host() const noexcept {
     return host;
 }
-
-//void http_request::set_client_fd(int fd) {
-//    client_fd = fd;
-//}
 
 int http_request::get_client_fd()  const noexcept {
     return client_fd;
 }
 
-//void http_request::set_server_addr(sockaddr addr) {
-//    server_addr = addr;
-//}
+void http_request::set_server_addr(sockaddr addr) {
+    server_addr = addr;
+}
 
-//sockaddr http_request::get_server_addr() {
-//    return server_addr;
-//}
-
-//bool http_request::is_resolved() const noexcept {
-//    return resolve_state;
-//}
-
-//void http_request::set_resolved(bool state) noexcept {
-//    resolve_state = state;
-//}
+sockaddr http_request::get_server_addr() const noexcept {
+    return server_addr;
+}
