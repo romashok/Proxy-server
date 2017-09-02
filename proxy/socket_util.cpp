@@ -102,9 +102,9 @@ bool peer_t::is_full_buffer() const noexcept {
     return buffer.size() >= BUFFER_SIZE;
 }
 
-bool peer_t::is_empty_buffer() const noexcept {
-    return buffer.empty();
-}
+//bool peer_t::is_empty_buffer() const noexcept {
+//    return buffer.empty();
+//}
 
 size_t peer_t::read() {
     try {
@@ -116,11 +116,10 @@ size_t peer_t::read() {
     }
 }
 
-size_t peer_t::write() {
+size_t peer_t::write(std::string msg) {
     try {
-        size_t len = socket.write(buffer);
-        buffer = buffer.substr(len);
-        return len;
+        size_t length = socket.write(msg);
+        return length;
     } catch (...) {
         return 0;
     }

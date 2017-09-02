@@ -50,13 +50,13 @@ struct peer_t {
     int get_fd() const noexcept;
 
     size_t read();
-    size_t write();
+    size_t write(std::string msg);
 
     std::string& get_buffer();
     void append_to_buffer(std::string& s);
     size_t get_buffer_size() const noexcept;
     bool is_full_buffer() const noexcept;
-    bool is_empty_buffer() const noexcept;
+//    bool is_empty_buffer() const noexcept;
 protected:
     const static size_t BUFFER_SIZE = 20000;
 
