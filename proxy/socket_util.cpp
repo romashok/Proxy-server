@@ -102,10 +102,6 @@ bool peer_t::is_full_buffer() const noexcept {
     return buffer.size() >= BUFFER_SIZE;
 }
 
-//bool peer_t::is_empty_buffer() const noexcept {
-//    return buffer.empty();
-//}
-
 size_t peer_t::read() {
     try {
         std::string s{socket.read(BUFFER_SIZE)};
