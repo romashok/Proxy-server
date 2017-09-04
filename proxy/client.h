@@ -9,23 +9,11 @@
 #include "host_resolver.h"
 
 struct http_request;
-/*
-enum client_state {SEND_BAD_REQUEST, // must send BAD_REQUEST to client socket
-                   WAIT_REQUEST, // ожидает запрос от клиента
-                   WAIT_HEADER, // ожидает получение всего заголовка запроса
-                   WAIT_BODY, // ожидает получения всего тела запроса
-                   PREPARED,
-                   WAIT_RESPONSE // ожидает ответа записи от сервера
-                  };
-*/
 
 struct client_t : public peer_t {
     friend class host_resolver;
 
     client_t(int fd);
-
-//    request_state get_state() const noexcept;
-//    void set_state(client_state new_state);
 
     size_t read_request();
     bool is_bad_request() const noexcept;

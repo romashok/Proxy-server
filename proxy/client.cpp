@@ -14,26 +14,14 @@
 client_t::client_t(int fd):
     peer_t(fd),
     server(nullptr),
-//    state(WAIT_REQUEST),
     request(nullptr)
 {}
-
-//request_state client_t::get_state() const noexcept {
-//    return request->get_state();
-//}
-
-/*
-void client_t::set_state(client_state new_state) {
-    state = new_state;
-}
-*/
 
 size_t client_t::read_request() {
     read();
 
     if (!has_request() && !create_new_request()) {
         std::cout << "Allocation problems for new request!";
-//        set_state(SEND_BAD_REQUEST); // should be?
         return 0;
     }
 
