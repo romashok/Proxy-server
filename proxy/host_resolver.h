@@ -2,6 +2,10 @@
 
 #include "client.h"
 
-struct resolver {
+struct client_t;
+
+struct host_resolver {
+    host_resolver();
+
     void resolve(client_t* client);
 };

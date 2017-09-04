@@ -20,8 +20,10 @@ set(SRC_LIST
 "proxy/event_queue.cpp"
 "proxy/http_request.h"
 "proxy/http_request.cpp"
-"proxy/resolver.h"
-"proxy/resolver.cpp"
+"proxy/host_resolver.h"
+"proxy/host_resolver.cpp"
+"proxy/utils.h"
+"proxy/utils.cpp"
 )
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
