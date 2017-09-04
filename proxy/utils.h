@@ -2,5 +2,8 @@
 
 #include <string>
 #include <sys/epoll.h>
+#include <iostream>
 
 std::string events_to_str(uint32_t events);
+
+void exit();

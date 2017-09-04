@@ -10,3 +10,8 @@ std::string events_to_str(uint32_t events) {
 
     return s;
 }
+
+void exit() {
+        std::cout << "exit" << std::endl;
+        std::exit(0);
+}
