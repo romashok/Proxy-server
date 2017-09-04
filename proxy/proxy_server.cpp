@@ -11,10 +11,12 @@
 #include "http_request.h"
 
 #include "socket_api.h"
+#include "utils.h"
 
 proxy_server::proxy_server(uint32_t port):
     proxy_socket(socket_api::create_main_socket(port)),
     queue(),
+    resolver(),
     is_working(true)
 {
     std::cout << "Main socket established on fd[" << proxy_socket.get_fd() << "]." << std::endl;
@@ -32,19 +34,23 @@ void proxy_server::run() {
         while(is_working) {
             int amount = queue.get_events_amount();
 
-            if (amount == -1)
+            if (amount == -1) {
                 perror("Error occured during getting new epoll events!");
+                continue;
+            }
 
             queue.handle_events(amount);
         }
+        std::cout << "proxy server stoped" << std::endl;
+        std::exit(0);
     } catch (custom_exception& e) {
         std::cout << e.reason();
     }
 }
 
 void proxy_server::connect_client() {
-    std::cout << "===================================================================\nNew connection! ";
-    client_t * new_client = new client_t(proxy_socket.get_fd());
+    std::cout << "===================================================================\nConnect client! ";
+    client_t * new_client = new client_t(socket_api::accept(proxy_socket.get_fd()));
     clients[new_client->get_fd()] = std::move(std::unique_ptr<client_t>(new_client));
     std::cout << "Client fd [" << new_client->get_fd() << "], total amount now is " << clients.size() << std::endl;
 

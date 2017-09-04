@@ -22,9 +22,10 @@ struct proxy_server
     void read_from_server(struct epoll_event& ev);
     void write_to_client(struct epoll_event& ev);
 private:
+    bool is_working;
     fd_t proxy_socket;
     event_queue queue;
-    bool is_working;
+    host_resolver resolver;
 
     std::map<uintptr_t, std::unique_ptr<client_t>> clients;
     std::map<uintptr_t, server_t*> servers;
