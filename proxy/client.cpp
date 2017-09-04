@@ -8,29 +8,32 @@
 #include "exceptions.h"
 #include "socket_api.h"
 #include "client.h"
+#include "http_request.h"
 
 
 client_t::client_t(int fd):
     peer_t(fd),
     server(nullptr),
-    state(WAIT_REQUEST),
+//    state(WAIT_REQUEST),
     request(nullptr)
 {}
 
-client_state client_t::get_state() const noexcept {
-    return state;
-}
+//request_state client_t::get_state() const noexcept {
+//    return request->get_state();
+//}
 
+/*
 void client_t::set_state(client_state new_state) {
     state = new_state;
 }
+*/
 
 size_t client_t::read_request() {
     read();
 
     if (!has_request() && !create_new_request()) {
         std::cout << "Allocation problems for new request!";
-        set_state(BAD_REQUEST); // should be?
+//        set_state(SEND_BAD_REQUEST); // should be?
         return 0;
     }
 
@@ -39,16 +42,20 @@ size_t client_t::read_request() {
 }
 
 bool client_t::is_bad_request() const noexcept {
-    return state == BAD_REQUEST;
+    return !request || request->get_state() == BAD_REQUEST;
 }
 
 bool client_t::is_ready() const noexcept {
-    return state == COMPLETED;
+    return request->get_state() == COMPLETED;
 }
 
 
 bool client_t::has_right_server() const noexcept {
     return server && server->get_host() == request->get_host();
+}
+
+sockaddr client_t::get_server_addr() {
+    return std::move(request->get_server_addr());
 }
 
 bool client_t::has_request() const noexcept {
