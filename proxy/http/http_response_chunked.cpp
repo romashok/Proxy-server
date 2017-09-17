@@ -1,9 +1,5 @@
 #include "http_response_chunked.h"
 
-http_response_chunked::http_response_chunked()
-{}
-
-
 void http_response_chunked::append_data(std::string const& data) {
     text.append(data);
 
@@ -29,19 +25,6 @@ void http_response_chunked::move_offset(size_t delta) {
 
 bool http_response_chunked::has_data_to_send() {
     return is_header_obtained() && !current_chunk.empty();
-}
-
-bool http_response_chunked::is_passed() {
-    return passed;
-}
-
-bool http_response_chunked::is_header_obtained() {
-    return full_header;
-}
-
-// last chunk obtain
-bool http_response_chunked::is_body_obtained() {
-    return full_body;
 }
 
 void http_response_chunked::parse_header() {

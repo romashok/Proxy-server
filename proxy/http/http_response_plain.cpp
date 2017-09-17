@@ -1,8 +1,5 @@
 #include "http_response_plain.h"
 
-http_response_plain::http_response_plain()
-{}
-
 void http_response_plain::append_data(std::string const& data) {
     text.append(data);
 
@@ -28,19 +25,6 @@ void http_response_plain::move_offset(size_t delta) {
 bool http_response_plain::has_data_to_send() {
     return is_header_obtained() && !text.empty();
 }
-
-bool http_response_plain::is_passed() {
-    return passed;
-}
-
-bool http_response_plain::is_header_obtained() {
-    return full_header;
-}
-
-bool http_response_plain::is_body_obtained() {
-    return full_body;
-}
-
 
 void http_response_plain::parse_header() {
     if (full_header) return;
