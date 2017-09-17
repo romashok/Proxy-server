@@ -6,7 +6,7 @@ void http_response_chunked::append_data(std::string const& data) {
     parse_header();
 }
 
-std::string http_response_chunked::get_next_data_to_send() {
+std::string http_response_chunked::get_next_data_to_send() const {
     return current_chunk;
 }
 
@@ -23,7 +23,7 @@ void http_response_chunked::move_offset(size_t delta) {
     }
 }
 
-bool http_response_chunked::has_data_to_send() {
+bool http_response_chunked::has_data_to_send() const noexcept {
     return is_header_obtained() && !current_chunk.empty();
 }
 

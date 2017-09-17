@@ -6,10 +6,10 @@ struct http_response_plain : public http_response {
     http_response_plain()=default;
 
     void append_data(std::string const& data);
-    std::string get_next_data_to_send();
+    std::string get_next_data_to_send() const;
     void move_offset(size_t delta);
 
-    bool has_data_to_send();
+    bool has_data_to_send() const noexcept;
 
     ~http_response_plain()=default;
 private:
@@ -18,7 +18,7 @@ private:
 
     size_t header_lenght, content_length;
 
-    void parse_header();
-    void parse_content_length();
-    void check_body_completeness();
+    void parse_header() noexcept;
+    void parse_content_length() noexcept;
+    void check_body_completeness() noexcept;
 };

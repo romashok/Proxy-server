@@ -9,7 +9,7 @@ void http_response_plain::append_data(std::string const& data) {
     }
 }
 
-std::string http_response_plain::get_next_data_to_send() {
+std::string http_response_plain::get_next_data_to_send() const {
     return text;
 }
 
@@ -22,11 +22,11 @@ void http_response_plain::move_offset(size_t delta) {
     }
 }
 
-bool http_response_plain::has_data_to_send() {
+bool http_response_plain::has_data_to_send() const noexcept {
     return is_header_obtained() && !text.empty();
 }
 
-void http_response_plain::parse_header() {
+void http_response_plain::parse_header() noexcept {
     if (full_header) return;
 
     size_t i = text.find("\r\n\r\n");
@@ -38,7 +38,7 @@ void http_response_plain::parse_header() {
     full_header = true;
 }
 
-void http_response_plain::parse_content_length() {
+void http_response_plain::parse_content_length() noexcept {
     size_t i;
 
     i = text.find("Content-Length: ");
@@ -50,7 +50,7 @@ void http_response_plain::parse_content_length() {
     }
 }
 
-void http_response_plain::check_body_completeness() {
+void http_response_plain::check_body_completeness() noexcept {
     if (sent_offset + text.size() == header_lenght + content_length) {
         full_body = true;
     }
