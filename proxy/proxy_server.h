@@ -4,7 +4,7 @@
 #include "socket_util.h"
 #include "client.h"
 #include "event_queue.h"
-#include "http_request.h"
+#include "http/http_request.h"
 
 struct proxy_server
 {
@@ -16,6 +16,7 @@ struct proxy_server
 
     void connect_client();
     void disconnect_client(struct epoll_event& ev);
+    void disconnect_server(int fd);
 
     void read_from_client(struct epoll_event& ev);
     void write_to_server(struct epoll_event& ev);
