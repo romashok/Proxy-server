@@ -2,18 +2,28 @@
 #include <string>
 
 #include "client.h"
+#include "http/http_request.h"
+
+struct http_request;
 
 struct server_t : peer_t {
     server_t(int fd);
     server_t(sockaddr addr);
+
     void bind(struct client_t* client);
+    void set_request(http_request* new_request);
+    bool is_sent_all_request() const noexcept;
 
     void set_host(std::string const& host);
     std::string get_host() const noexcept;
 
     int get_client_fd();
-    void sent_msg_to_client();
+    void write_request();
 private:
     std::string host;
     struct client_t* client;
+    std::unique_ptr<http_request> request;
+    size_t offset;
+
+    std::string get_next_part() const;
 };
