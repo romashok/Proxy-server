@@ -31,7 +31,7 @@ void http_response_chunked::parse_header() {
     if (full_header) return;
 
     size_t i = text.find("\r\n\r\n");
-    if (i != std::string::npos) return;
+    if (i == std::string::npos) return;
 
     current_chunk = text.substr(0, i + 4);
 
