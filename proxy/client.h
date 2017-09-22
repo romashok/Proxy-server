@@ -5,7 +5,7 @@
 
 #include "socket_util.h"
 #include "server.h"
-#include "http_request.h"
+#include "http/http_request.h"
 #include "host_resolver.h"
 
 struct http_request;

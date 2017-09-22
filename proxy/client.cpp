@@ -4,11 +4,11 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <cassert>
 
-#include "exceptions.h"
 #include "socket_api.h"
 #include "client.h"
-#include "http_request.h"
+#include "http/http_request.h"
 
 
 client_t::client_t(int fd):
@@ -30,7 +30,8 @@ size_t client_t::read_request() {
 }
 
 bool client_t::is_bad_request() const noexcept {
-    return !request || request->get_state() == BAD_REQUEST;
+    assert(request);
+    return request->get_state() == BAD_REQUEST;
 }
 
 bool client_t::is_ready() const noexcept {
@@ -88,11 +89,8 @@ std::string client_t::get_request_host() const noexcept {
 }
 
 void client_t::move_request_to_server() {
-    if (has_server()) {
-        server->set_request(request.release());
-    } else {
-        std::cout << "Client error: No server to write!" << std::endl;
-    }
+    assert(server);
+    server->set_request(request.release());
 }
 
 int client_t::get_server_fd() {
@@ -100,7 +98,7 @@ int client_t::get_server_fd() {
         return server->get_fd();
     } else {
         std::cout << "Client error: Get server fd error, no server." << std::endl;
-        throw new custom_exception("No server");
+        throw new std::runtime_error("No server");
     }
 }
 
