@@ -29,12 +29,16 @@ size_t client_t::read_request() {
     buffer.clear();
 }
 
+size_t client_t::write_response(std::string const& msg) {
+    return write(msg);
+}
+
 bool client_t::is_bad_request() const noexcept {
     assert(request);
     return request->get_state() == BAD_REQUEST;
 }
 
-bool client_t::is_ready() const noexcept {
+bool client_t::is_ready_to_send() const noexcept {
     return request->get_state() == COMPLETED;
 }
 

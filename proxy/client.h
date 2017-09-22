@@ -16,8 +16,9 @@ struct client_t : public peer_t {
     client_t(int fd);
 
     size_t read_request();
+    size_t write_response(std::string const& msg);
     bool is_bad_request() const noexcept;
-    bool is_ready() const noexcept;
+    bool is_ready_to_send() const noexcept;
     bool has_right_server() const noexcept;
     sockaddr get_server_addr();
 
