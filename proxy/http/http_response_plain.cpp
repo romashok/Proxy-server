@@ -15,7 +15,7 @@ std::string http_response_plain::get_next_data_to_send() const {
 
 void http_response_plain::move_offset(size_t delta) {
     sent_offset += delta;
-    text.substr(delta);
+    text.erase(0, delta);
 
     if (is_body_obtained() && text.empty()) {
         passed = true;
