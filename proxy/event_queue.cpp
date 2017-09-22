@@ -25,8 +25,7 @@ event_queue::event_queue():
 {}
 
 void event_queue::add_event(std::function<void(struct epoll_event&)> handler, int fd, uint32_t events) {
-    std::cout << "Add new event to queue." << std::endl;
-    std::cout << "fd: " << fd << " flags: " << events_to_str(events) << std::endl;
+    std::cout << "Add new event to queue. fd: " << fd << " flags: " << events_to_str(events) << std::endl;
 
     handlers[id{fd, events}] = handler;
 
@@ -36,19 +35,18 @@ void event_queue::add_event(std::function<void(struct epoll_event&)> handler, in
 
     if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_ADD, fd, &ev) == -1) {
         perror("Failed to add new event to epoll.");
-        std::cout << "Failed to add new event on fd(" << std::to_string(fd).c_str() << ") to epoll." << std::endl;
+        std::cout << "Failed to add new event on fd(" << fd << ") to epoll." << std::endl;
     }
 }
 
 void event_queue::modify_event(std::function<void(struct epoll_event&)> handler, struct epoll_event& ev, uint32_t new_events) {
-    std::cout << "Modify fd [" << ev.data.fd << "] in epoll!" << std::endl;
-    std::cout << "fd: " << ev.data.fd << " new flags: " << new_events << std::endl;
+    std::cout << "Modify fd in epoll. fd: " << ev.data.fd << " new flags: " << new_events << std::endl;
 
-    std::cout << "Delete old event." << new_events << std::endl;
+    std::cout << "Delete old event." << events_to_str(ev.events) << std::endl;
     auto it = handlers.find(id{ev.data.fd, ev.events});
     if (it != handlers.end()) handlers.erase(it);
 
-    std::cout << "Add new event." << new_events << std::endl;
+    std::cout << "Add new event." << events_to_str(new_events) << std::endl;
     ev.events = new_events;
     handlers[id{ev.data.fd, ev.events}] = handler;
 
@@ -58,19 +56,26 @@ void event_queue::modify_event(std::function<void(struct epoll_event&)> handler,
     }
 }
 
+void event_queue::modify_event(std::function<void(struct epoll_event&)> handler, int fd, uint32_t events, uint32_t new_events) {
+    struct epoll_event ev;
+    ev.data.fd = fd;
+    ev.events = events;
+
+    modify_event(handler, ev, new_events);
+}
+
 void event_queue::delete_event(struct epoll_event& ev) {
-    std::cout << "Delete fd [" << ev.data.fd << "] from epoll!" << std::endl;
-    std::cout << "fd: " << ev.data.fd << " flags: " << events_to_str(ev.events) << std::endl;
+    std::cout << "Delete fd from epoll. fd: " << ev.data.fd << " flags: " << events_to_str(ev.events) << std::endl;
 
     auto it = handlers.find(id{ev.data.fd, ev.events});
     if (it != handlers.end()) {
         handlers.erase(it);
+    }
 
-        // legacy non-NULL ev param with EPOLL_CTL_DEL for kernel before 2.6.9
-        if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_DEL, ev.data.fd, &ev) < 0) {
-            perror("Failed to delete event from epoll.");
-            std::cout << "Failed to delete from epoll fd [" << ev.data.fd << "]" << std::endl;
-        }
+    // legacy non-NULL ev param with EPOLL_CTL_DEL for kernel before 2.6.9
+    if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_DEL, ev.data.fd, &ev) < 0) {
+        perror("Failed to delete event from epoll.");
+        std::cout << "Failed to delete from epoll fd [" << ev.data.fd << "]" << std::endl;
     }
 }
 
@@ -91,15 +96,20 @@ int event_queue::get_events_amount() {
 
 
 void event_queue::handle_events(int amount) {
+    std::cout << "\nHandle new events: " << amount << std::endl;
     invalid_events.clear();
 
     for (int i = 0; i < amount; ++i) {
 //        std::cout << "Handle: " << std::endl;
-//        std::cout << "fd: " << events_list[i].data.fd << " flags: " << events_to_str(events_list[i].events) << std::endl;
+        std::cout << "fd: " << events_list[i].data.fd << " flags: " << events_to_str(events_list[i].events) << std::endl;
 
-        if (!invalid_events.count(id{events_list[i].data.fd, events_list[i].events})) {
-            std::function<void(struct epoll_event&)> handler = handlers[id{events_list[i]}];
-            handler(events_list[i]);
+        if (!invalid_events.count(id{events_list[i].data.fd, events_list[i].events})){
+            if (handlers.count(id{events_list[i]})) {
+                std::function<void(struct epoll_event&)> handler = handlers[id{events_list[i]}];
+                handler(events_list[i]);
+            } else {
+                std::cout << "INVALID EVENT" << std::endl;
+            }
         }
     }
 }
