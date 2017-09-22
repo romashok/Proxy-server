@@ -30,7 +30,7 @@ void http_response_plain::parse_header() noexcept {
     if (full_header) return;
 
     size_t i = text.find("\r\n\r\n");
-    if (i != std::string::npos) return;
+    if (i == std::string::npos) return;
 
     header_lenght = i + 4;
     parse_content_length();
