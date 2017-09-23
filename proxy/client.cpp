@@ -8,7 +8,7 @@
 
 #include "socket_api.h"
 #include "client.h"
-#include "http/http_request.h"
+#include "http/http_request_bodyless.h"
 
 
 client_t::client_t(int fd):
@@ -20,13 +20,30 @@ client_t::client_t(int fd):
 size_t client_t::read_request() {
     read();
 
-    if (!has_request() && !create_new_request()) {
-        std::cout << "Allocation problems for new request!";
-        return 0;
+    if (!request) {
+        size_t i = buffer.find("GET");
+        if (i != std::string::npos) {
+            std::cout << "new GET request" << std::endl;
+            http_request* new_request = new (std::nothrow) http_request_bodyless(get_fd());
+            if (!new_request) {
+                std::err << "bad alloc" << std::endl;
+                return;
+            }
+            request.reset(new_request);
+            return;
+        }
+
+        // todo POST and PUT
+        i = buffer.find("POST");
+        if (i != std::string::npos) {
+            std::cout << "new POST request" << std::endl;
+        }
     }
 
-    request->append_data(get_buffer());
-    buffer.clear();
+    if (request) {
+        request->append_data(buffer);
+        buffer.clear();
+    }
 }
 
 size_t client_t::write_response(std::string const& msg) {
@@ -35,11 +52,11 @@ size_t client_t::write_response(std::string const& msg) {
 
 bool client_t::is_bad_request() const noexcept {
     assert(request);
-    return request->get_state() == BAD_REQUEST;
+    return request->is_bad_request();
 }
 
-bool client_t::is_ready_to_send() const noexcept {
-    return request->get_state() == COMPLETED;
+bool client_t::has_data_to_send() const noexcept {
+    return request->has_data_to_send();
 }
 
 
@@ -55,14 +72,16 @@ bool client_t::has_request() const noexcept {
     return request.get() != nullptr;
 }
 
-bool client_t::create_new_request() noexcept {
-    std::cout << "create new request" << std::endl;
-    http_request* new_request = new (std::nothrow) http_request(get_fd());
-    if (!new_request) return false;
+//bool client_t::create_new_request() noexcept {
+//    std::cout << "create new request" << std::endl;
 
-    request.reset(new_request);
-    return true;
-}
+//    if (buffer.substr()
+//    http_request_stateful* new_request = new (std::nothrow) http_request_stateful(get_fd());
+//    if (!new_request) return false;
+
+//    request.reset(new_request);
+//    return true;
+//}
 
 http_request* client_t::get_request() const noexcept {
     return request.get();

@@ -4,11 +4,9 @@
 #include <memory>
 
 #include "socket_util.h"
+#include "host_resolver.h"
 #include "server.h"
 #include "http/http_request.h"
-#include "host_resolver.h"
-
-struct http_request;
 
 struct client_t : public peer_t {
     friend class host_resolver;
@@ -18,7 +16,7 @@ struct client_t : public peer_t {
     size_t read_request();
     size_t write_response(std::string const& msg);
     bool is_bad_request() const noexcept;
-    bool is_ready_to_send() const noexcept;
+    bool has_data_to_send() const noexcept;
     bool has_right_server() const noexcept;
     sockaddr get_server_addr();
 
@@ -28,6 +26,7 @@ struct client_t : public peer_t {
     void unbind();
     bool has_server() const noexcept;
 
+    bool has_request() const noexcept;
     std::string get_request_host() const noexcept;
 
     int get_server_fd();
@@ -37,6 +36,5 @@ private:
     std::unique_ptr<struct server_t> server;
     std::unique_ptr<http_request> request;
 
-    bool has_request() const noexcept;
     bool create_new_request() noexcept;
 };
