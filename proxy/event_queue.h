@@ -44,6 +44,8 @@ private:
     friend bool operator<(id const&, id const&);
     friend std::ostream& operator<<(std::ostream& os, const event_queue::id& rhs);
 
+    void handle_io_events(struct epoll_event& ev, uint32_t events);
+
     fd_t epoll;
     std::map<id,std::function<void(struct epoll_event&)>> handlers;
 

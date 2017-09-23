@@ -107,17 +107,10 @@ void event_queue::handle_events(int amount) {
     invalid_events.clear();
 
     for (int i = 0; i < amount; ++i) {
-//        std::cout << "Handle: " << std::endl;
         std::cout << "fd: " << events_list[i].data.fd << " flags: " << events_to_str(events_list[i].events) << std::endl;
 
-        if (!invalid_events.count(id{events_list[i].data.fd, events_list[i].events})){
-            if (handlers.count(id{events_list[i]})) {
-                std::function<void(struct epoll_event&)> handler = handlers[id{events_list[i]}];
-                handler(events_list[i]);
-            } else {
-                std::cout << "INVALID EVENT" << std::endl;
-            }
-        }
+        handle_io_events(events_list[i], EPOLLOUT);
+        handle_io_events(events_list[i], EPOLLIN);
     }
 }
 
@@ -150,4 +143,20 @@ bool operator<(event_queue::id const& lhs, event_queue::id const& rhs) {
 std::ostream& operator<<(std::ostream& os, const event_queue::id& rhs) {
     os << rhs.fd << " " << events_to_str(rhs.events);
     return os;
+}
+
+void event_queue::handle_io_events(struct epoll_event& ev, uint32_t events) {
+    if (ev.events & events && !invalid_events.count(id{ev.data.fd, events})) {
+        id handler_id{ev.data.fd, events};
+        if (handlers.count(handler_id)) {
+            std::function<void(struct epoll_event&)> handler = handlers[handler_id];
+            handler(ev);
+        } else {
+            std::cout << "INVALID {" <<  events_to_str(events) << "} EVENT" << std::endl;
+            for (auto& it : handlers) {
+                std::cout << it.first  << std::endl;
+            }
+            exit();
+        }
+    }
 }
