@@ -1,51 +1,52 @@
 #pragma once
 
 #include <string>
+#include <iostream>
+#include <cassert>
 
 #include "../socket_util.h"
-#include "../client.h"
 #include "../host_resolver.h"
 
-enum request_state {BAD_REQUEST, // must send bad_request to client
-                    HEADER,      // getting request header
-                    BODY,        // getting request body
-                    COMPLETED,   // got comleted request
-                    RESOLVING,   // resolving request host
-                    RESOLVED};   // request host resoled
 
 struct http_request {
-    friend class host_resolver;
-
     http_request(int fd);
 
-    request_state get_state() const noexcept;
-    void set_state(request_state new_state) noexcept;
+    virtual void append_data(std::string const& data)=0;
+    virtual std::string get_next_data_to_send() const =0;
+    virtual void move_offset(size_t delta)=0;
 
+    virtual bool has_data_to_send() const noexcept =0 ;
+    virtual bool is_obtained() const noexcept;
+    virtual bool is_passed() const noexcept;
+    virtual bool is_bad_request() const noexcept;
 
-    void append_data(std::string const& str);
-    std::string get_raw_text() const noexcept;
+    virtual ~http_request()=default;
 
-    // getters and setters
+    //
+    friend class host_resolver;
     std::string get_host() const noexcept;
-
     int get_client_fd() const noexcept;
-
     void set_server_addr(struct sockaddr addr);
     sockaddr get_server_addr() const noexcept;
-private:
-    request_state state;
 
-    std::string header, body;
-    std::string host, url;
 
-    size_t content_length;
+protected:
+    // Plaint text of request
+    std::string text;
+
+    bool full_header, full_body;
+    bool passed, bad_request;
+
+    virtual bool is_header_obtained() const noexcept;
+    virtual bool is_body_obtained() const noexcept;
+
+    //
 
     int client_fd;
+    std::string host;
     struct sockaddr server_addr;
-
     // utils
     bool is_valid_host();
     void ensure_relative_url();
-    bool if_post_or_put();
 };
 
