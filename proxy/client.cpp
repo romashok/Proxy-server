@@ -17,7 +17,7 @@ client_t::client_t(int fd):
     request(nullptr)
 {}
 
-size_t client_t::read_request() {
+void client_t::read_request() {
     read();
 
     if (!request) {
@@ -26,11 +26,10 @@ size_t client_t::read_request() {
             std::cout << "new GET request" << std::endl;
             http_request* new_request = new (std::nothrow) http_request_bodyless(get_fd());
             if (!new_request) {
-                std::err << "bad alloc" << std::endl;
+                std::cerr << "bad alloc" << std::endl;
                 return;
             }
             request.reset(new_request);
-            return;
         }
 
         // todo POST and PUT

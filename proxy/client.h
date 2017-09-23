@@ -13,7 +13,7 @@ struct client_t : public peer_t {
 
     client_t(int fd);
 
-    size_t read_request();
+    void read_request();
     size_t write_response(std::string const& msg);
     bool is_bad_request() const noexcept;
     bool has_data_to_send() const noexcept;
