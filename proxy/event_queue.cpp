@@ -24,9 +24,9 @@ event_queue::event_queue():
     epoll(create_epollfd())
 {}
 
-void event_queue::add_event(std::function<void(struct epoll_event&)> handler, int fd, uint32_t events) {
-    std::cout << "Add new event to queue. fd: " << fd << " flags: " << events_to_str(events) << std::endl;
-
+void event_queue::create_events(std::function<void(struct epoll_event&)> handler, int fd, uint32_t events) {
+    std::cout << "Create event: fd= " << fd
+              << " flags= " << events_to_str(events) << std::endl;
     handlers[id{fd, events}] = handler;
 
     struct epoll_event ev;
@@ -34,51 +34,58 @@ void event_queue::add_event(std::function<void(struct epoll_event&)> handler, in
     ev.events = events;
 
     if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_ADD, fd, &ev) == -1) {
-        perror("Failed to add new event to epoll.");
-        std::cout << "Failed to add new event on fd(" << fd << ") to epoll." << std::endl;
+        perror("Failed to create event");
     }
 }
 
-void event_queue::modify_event(std::function<void(struct epoll_event&)> handler, struct epoll_event& ev, uint32_t new_events) {
-    std::cout << "Modify fd in epoll. fd: " << ev.data.fd << " new flags: " << new_events << std::endl;
+void event_queue::merge_events(std::function<void(struct epoll_event&)> handler, int fd, uint32_t new_events, uint32_t old_events) {
+    std::cout << "Merge event: fd= " << fd
+              << " old: " << events_to_str(old_events)
+              << " new: " << events_to_str(new_events) << std::endl;
 
-    std::cout << "Delete old event." << events_to_str(ev.events) << std::endl;
-    auto it = handlers.find(id{ev.data.fd, ev.events});
-    if (it != handlers.end()) handlers.erase(it);
+    handlers[id{fd, new_events}] = handler;
 
-    std::cout << "Add new event." << events_to_str(new_events) << std::endl;
-    ev.events = new_events;
-    handlers[id{ev.data.fd, ev.events}] = handler;
-
-    if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_MOD, ev.data.fd, &ev) < 0) {
-        perror("Failed to modify event in epoll.");
-        std::cout << "Failed to modify event in epoll. fd [" << ev.data.fd << "]" << std::endl;
-    }
-}
-
-void event_queue::modify_event(std::function<void(struct epoll_event&)> handler, int fd, uint32_t events, uint32_t new_events) {
     struct epoll_event ev;
     ev.data.fd = fd;
-    ev.events = events;
+    ev.events = old_events | new_events;
 
-    modify_event(handler, ev, new_events);
+    if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_MOD, ev.data.fd, &ev) < 0) {
+        perror("Failed to merge event");
+    }
 }
 
-void event_queue::delete_event(struct epoll_event& ev) {
-    std::cout << "Delete fd from epoll. fd: " << ev.data.fd << " flags: " << events_to_str(ev.events) << std::endl;
+void event_queue::reset_to_events(std::function<void(struct epoll_event&)> handler, int fd, uint32_t new_events) {
+    std::cout << "Reset event: fd= " << fd
+              << " new: " << events_to_str(new_events) << std::endl;
 
-    auto it = handlers.find(id{ev.data.fd, ev.events});
-    if (it != handlers.end()) {
-        handlers.erase(it);
+    handlers[id{fd, new_events}] = handler;
+
+    struct epoll_event ev;
+    ev.data.fd = fd;
+    ev.events = new_events;
+
+    if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_MOD, ev.data.fd, &ev) < 0) {
+        perror("Failed to reset event");
     }
+}
+
+void event_queue::delete_events_of_fd(int fd) {
+    std::cout << "Delete event: fd= " << fd << std::endl;
+
+    auto it = handlers.find(id{fd, EPOLLIN});
+    if (it != handlers.end()) handlers.erase(it);
+    it = handlers.find(id{fd, EPOLLOUT});
+    if (it != handlers.end()) handlers.erase(it);
+
+    struct epoll_event ev;
+    ev.data.fd = fd;
+    ev.events = NULL;
 
     // legacy non-NULL ev param with EPOLL_CTL_DEL for kernel before 2.6.9
     if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_DEL, ev.data.fd, &ev) < 0) {
-        perror("Failed to delete event from epoll.");
-        std::cout << "Failed to delete from epoll fd [" << ev.data.fd << "]" << std::endl;
+        perror("Failed to delete event");
     }
 }
-
 
 void event_queue::invalidate_event(int fd, uint32_t events) {
     invalid_events.insert(id{fd, events});

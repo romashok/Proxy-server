@@ -13,11 +13,12 @@ struct event_queue
 {
     event_queue();
 
-    void add_event(std::function<void(struct epoll_event&)> handler, int fd, uint32_t events);
-    void modify_event(std::function<void(struct epoll_event&)> handler, struct epoll_event& ev, uint32_t new_events);
-    void modify_event(std::function<void(struct epoll_event&)> handler, int fd, uint32_t events, uint32_t new_events);
-    void delete_event(struct epoll_event& ev);
-    void delete_event(int fd, uint32_t events);
+    void create_events(std::function<void(struct epoll_event&)> handler, int fd, uint32_t events);
+    void merge_events(std::function<void(struct epoll_event&)> handler, int fd, uint32_t new_events, uint32_t old_events);
+    void reset_to_events(std::function<void(struct epoll_event&)> handler, int fd, uint32_t new_events);
+    void delete_events_of_fd(int fd);
+
+
     void invalidate_event(int fd, uint32_t events);
 
     int get_events_amount();
