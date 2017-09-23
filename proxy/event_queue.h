@@ -34,12 +34,15 @@ private:
 
         friend bool operator==(id const&, id const&);
         friend bool operator<(id const&, id const&);
+        friend std::ostream& operator<<(std::ostream& os, const id& rhs);
     private:
         int fd;
         uint32_t events;
     };
+
     friend bool operator==(id const&, id const&);
     friend bool operator<(id const&, id const&);
+    friend std::ostream& operator<<(std::ostream& os, const event_queue::id& rhs);
 
     fd_t epoll;
     std::map<id,std::function<void(struct epoll_event&)>> handlers;

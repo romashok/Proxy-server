@@ -147,3 +147,7 @@ bool operator<(event_queue::id const& lhs, event_queue::id const& rhs) {
     return lhs.fd <  rhs.fd || (lhs.fd == rhs.fd && lhs.events < rhs.events);
 }
 
+std::ostream& operator<<(std::ostream& os, const event_queue::id& rhs) {
+    os << rhs.fd << " " << events_to_str(rhs.events);
+    return os;
+}
