@@ -12,7 +12,7 @@
 
 host_resolver::host_resolver() {}
 
-void host_resolver::resolve(client_t* client) {
+bool host_resolver::resolve(client_t* client) {
     http_request* request = client->request.get();
     std::cout << "Resolving host{" << request->get_host() << "}" << std::endl;
 
@@ -30,13 +30,11 @@ void host_resolver::resolve(client_t* client) {
 
     if (getaddrinfo(new_host_name.c_str(), port.c_str(), &hints, &server_info) != 0) {
         std::cout << "RESOLVER: getaddrinfo error!" << std::endl;
-        request->set_state(BAD_REQUEST); // todo unresolvable state
-        return;
+        return false;
     }
 
     sockaddr server_addr = *server_info->ai_addr;
     freeaddrinfo(server_info);
     request->set_server_addr(server_addr);
-
-    request->set_state(RESOLVED);
+    return true;
 }
