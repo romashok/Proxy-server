@@ -31,8 +31,8 @@ void server_t::bind(client_t* new_client) {
     client = new_client;
 }
 
-bool server_t::is_sent_all_request() const noexcept {
-    return offset == request->get_raw_text().size();
+bool server_t::is_request_passed() const noexcept {
+    return request->is_passed();
 }
 
 http_response const* server_t::get_response() {
@@ -54,16 +54,13 @@ int server_t::get_client_fd() {
 
 void server_t::write_request() {
     assert(request);
-    size_t length = write(get_next_part());
-    offset += length;
-}
+    assert(!request->is_passed());
 
-std::string server_t::get_next_part() const {
-    assert(request);
-    if (offset == request->get_raw_text().size()) return "";
-    // todo ensure request status quering
-    std::cout << "offset: " << offset  << " size: " << request->get_raw_text().size() << std::endl;
-    return request->get_raw_text().substr(offset);
+    if (request->has_data_to_send()) {
+        std::string next = request->get_next_data_to_send();
+        size_t delta = write(next);
+        request->move_offset(delta);
+    }
 }
 
 void server_t::read_response() {
@@ -84,13 +81,9 @@ void server_t::read_response() {
     }
 
     if (response) {
-//        std::cout << "read response" << std::endl;
-//        std::cout << get_buffer().substr(0, 205) << std::endl;
         response->append_data(get_buffer());
         buffer.clear();
-//        std::exit(0);
     }
-
 }
 
 void server_t::move_response_offset(size_t delta) {

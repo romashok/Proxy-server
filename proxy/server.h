@@ -13,7 +13,7 @@ struct server_t : peer_t {
 
     void bind(struct client_t* client);
     void set_request(http_request* new_request);
-    bool is_sent_all_request() const noexcept;
+    bool is_request_passed() const noexcept;
     http_response const* get_response();
 
     void set_host(std::string const& host);
@@ -28,7 +28,6 @@ private:
     std::string host;
     struct client_t* client;
     std::unique_ptr<http_request> request;
-    size_t offset;
     std::unique_ptr<http_response> response;
 
     std::string get_next_part() const;
