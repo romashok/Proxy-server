@@ -18,4 +18,5 @@ private:
     void parse_header();
     void extract_next_chunk();
     std::pair<int, size_t> parse_chunk_length();
+    void validate_last_chunk();
 };

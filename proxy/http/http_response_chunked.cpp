@@ -4,6 +4,7 @@ void http_response_chunked::append_data(std::string const& data) {
     text.append(data);
 
     parse_header();
+    validate_last_chunk();
 }
 
 std::string http_response_chunked::get_next_data_to_send() const {
@@ -62,6 +63,33 @@ void http_response_chunked::extract_next_chunk() {
             current_chunk = text.substr(0, chunk_size);
             text.erase(0, chunk_size);
         }
+    }
+}
+
+void http_response_chunked::validate_last_chunk() {
+    if (text.empty()) return;
+
+    size_t pos = 0;
+    for (;;) {
+        size_t i = text.find("\r\n", pos);
+        if (i == std::string::npos) return;
+
+        int length_value;
+        try {
+            length_value = std::stoi(text.substr(pos, (int)i - (int)pos), nullptr, 16);
+        } catch (...) {
+            std::cerr << "parse error {" << text.substr(pos, (int)i - (int)pos) << "}" << std::endl;
+            return;
+        }
+
+        pos = i + 2; // skip <chunk size>\r\n
+        if (length_value == 0 && text.find("\r\n", pos) != std::string::npos) {
+            full_body = true;
+            return;
+        }
+
+        pos += length_value + 2; // skip <chunk content>\r\n
+        if (pos >= text.size()) return;
     }
 }
 
