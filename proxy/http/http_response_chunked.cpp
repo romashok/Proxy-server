@@ -13,14 +13,15 @@ std::string http_response_chunked::get_next_data_to_send() const {
 
 void http_response_chunked::move_offset(size_t delta) {
     if (delta == current_chunk.size()) {
-        if (is_body_obtained()) {
+        current_chunk.clear();
+
+        if (text.empty() && is_body_obtained()) {
             passed = true;
             return;
         }
-
         extract_next_chunk();
     } else {
-        current_chunk = current_chunk.substr(delta);
+        current_chunk.erase(0, delta);
     }
 }
 
@@ -34,15 +35,11 @@ void http_response_chunked::parse_header() {
     size_t i = text.find("\r\n\r\n");
     if (i == std::string::npos) return;
 
+
     current_chunk = text.substr(0, i + 4);
-
-    // todo rewrite with erase
-    if (current_chunk.size() < text.size()) {
-        text = text.substr(i + 5);
-    } else {
-        text.clear();
-    }
-
+    text.erase(0, current_chunk.size());
+//    std::cout << "response chunked header: {\n" << current_chunk << "}" << std::endl;
+//    std::cout << "response chunked rest: {\n" << text << "}" << std::endl;
     full_header = true;
 }
 
