@@ -9,6 +9,7 @@
 #include "socket_api.h"
 #include "client.h"
 #include "http/http_request_bodyless.h"
+#include "http/http_request_with_body.h"
 
 
 client_t::client_t(int fd):
@@ -43,7 +44,12 @@ void client_t::read_request() {
         i = buffer.find("POST");
         if (i != std::string::npos) {
             std::cout << "new POST request" << std::endl;
-            std::exit(0);
+            http_request* new_request = new (std::nothrow) http_request_with_body(get_fd());
+            if (!new_request) {
+                std::cerr << "bad alloc" << std::endl;
+                return;
+            }
+            request.reset(new_request);
         }
     }
 

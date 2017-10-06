@@ -26,6 +26,8 @@ set(SRC_LIST
 "proxy/http/http_request.cpp"
 "proxy/http/http_request_bodyless.h"
 "proxy/http/http_request_bodyless.cpp"
+"proxy/http/http_request_with_body.h"
+"proxy/http/http_request_with_body.cpp"
 
 "proxy/http/http_response.h"
 "proxy/http/http_response.cpp"
