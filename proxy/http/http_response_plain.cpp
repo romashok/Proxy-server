@@ -32,6 +32,8 @@ void http_response_plain::parse_header() noexcept {
     size_t i = text.find("\r\n\r\n");
     if (i == std::string::npos) return;
 
+    std::cout << "response plain header: {\n" << text.substr(0, i) << "\n}" << std::endl;
+
     header_lenght = i + 4;
     parse_content_length();
 
@@ -51,6 +53,8 @@ void http_response_plain::parse_content_length() noexcept {
 }
 
 void http_response_plain::check_body_completeness() noexcept {
+    if (full_body) return;
+
     if (sent_offset + text.size() == header_lenght + content_length) {
         full_body = true;
     }
