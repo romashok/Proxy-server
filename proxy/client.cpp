@@ -21,7 +21,14 @@ void client_t::read_request() {
     read();
 
     if (!request) {
-        size_t i = buffer.find("GET");
+        std::cout << "no request yet" << std::endl;
+        size_t i = buffer.find("CONNECT");
+        if (i != std::string::npos) {
+            // todo catch this exception
+            throw new std::runtime_error("http CONNECT is not implemented");
+        }
+
+        i = buffer.find("GET");
         if (i != std::string::npos) {
             std::cout << "new GET request" << std::endl;
             http_request* new_request = new (std::nothrow) http_request_bodyless(get_fd());
@@ -36,6 +43,7 @@ void client_t::read_request() {
         i = buffer.find("POST");
         if (i != std::string::npos) {
             std::cout << "new POST request" << std::endl;
+            std::exit(0);
         }
     }
 

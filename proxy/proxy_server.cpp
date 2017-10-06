@@ -74,7 +74,11 @@ void proxy_server::disconnect_server(int fd) {
 
 void proxy_server::read_from_client(struct epoll_event& ev) {
     struct client_t* client = clients.at(ev.data.fd).get();
-    client->read_request();
+    try {
+        client->read_request();
+    } catch (...) {
+        disconnect_client(client->get_fd());
+    }
 
     if (!client->has_request()) return;
 
