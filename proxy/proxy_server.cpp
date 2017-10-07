@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <tuple>
 
 #include "proxy_server.h"
 #include "http/http_request.h"
@@ -18,7 +19,20 @@ proxy_server::proxy_server(uint32_t port):
     resolver(),
     is_working(true)
 {
+    std::cout << "Main thread " << std::this_thread::get_id() << std::endl;
     std::cout << "Main socket established on fd[" << proxy_socket.get_fd() << "]." << std::endl;
+
+    if (!resolver.is_active()) {
+        is_working = false;
+        std::cout << "Shut down server" << std::endl;
+        return;
+    }
+    std::cout << "EventFd on fd[" << resolver.get_eventfd() << "]." << std::endl;
+
+
+    queue.create_events([this](struct epoll_event& ev) {
+        this->on_host_resolved(ev);
+    }, resolver.get_eventfd(), EPOLLIN);
 
     queue.create_events([this](struct epoll_event& ev) {
         this->connect_client();

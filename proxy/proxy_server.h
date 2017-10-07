@@ -22,6 +22,8 @@ struct proxy_server
     void write_to_server(struct epoll_event& ev);
     void read_from_server(struct epoll_event& ev);
     void write_to_client(struct epoll_event& ev);
+
+    void on_host_resolved(struct epoll_event& ev);
 private:
     bool is_working;
     fd_t proxy_socket;
