@@ -64,7 +64,7 @@ void server_t::write_request() {
 }
 
 void server_t::read_response() {
-    read();
+    int length = read();
 
     if (!response) {
         size_t i = buffer.find("Content-Length: ");
@@ -80,6 +80,22 @@ void server_t::read_response() {
         }
     }
 
+    if (!response && length == 0) {
+        size_t i = buffer.find("Connection: close");
+        if (i != std::string::npos) {
+            std::cout << "new response with Connection: close" << std::endl;
+            std::string prefix = buffer.substr(0, i);
+            std::string suffix = buffer.substr(i);
+            buffer.clear();
+            buffer.append(prefix);
+            // skip Connection: close \r\n\r\n
+            std::cout << ((int)suffix.size() - 17 - 4) << std::endl;
+            buffer.append("Content-Length: " + std::to_string((int)suffix.size() - 17 - 4) + "\r\n");
+            buffer.append(suffix);
+        }
+    }
+
+//    std::cout << "{" << buffer  << "}\n" << std::endl;
     if (response) {
         response->append_data(get_buffer());
         buffer.clear();
