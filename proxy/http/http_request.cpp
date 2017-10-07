@@ -75,10 +75,10 @@ int http_request::get_client_fd()  const noexcept {
     return client_fd;
 }
 
-void http_request::set_server_addr(sockaddr addr) {
-    server_addr = addr;
-}
+//void http_request::set_server_addr(sockaddr addr) {
+//    server_addr = addr;
+//}
 
-sockaddr http_request::get_server_addr() const noexcept {
-    return server_addr;
-}
+//sockaddr http_request::get_server_addr() const noexcept {
+//    return server_addr;
+//}

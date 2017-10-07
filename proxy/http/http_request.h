@@ -26,8 +26,8 @@ struct http_request {
     friend class host_resolver;
     std::string get_host() const noexcept;
     int get_client_fd() const noexcept;
-    void set_server_addr(struct sockaddr addr);
-    sockaddr get_server_addr() const noexcept;
+//    void set_server_addr(struct sockaddr addr);
+//    sockaddr get_server_addr() const noexcept;
 
 
 protected:
