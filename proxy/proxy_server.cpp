@@ -178,8 +178,8 @@ void proxy_server::on_host_resolved(struct epoll_event& ev) {
 
     if (!client->has_request() || client->get_request_host() != host) {
         std::cout << "Another host was expected" << std::endl;
-        exit();
-        disconnect_client(client->get_fd());
+//        exit();
+//        disconnect_client(client->get_fd());
         return;
     }
 
