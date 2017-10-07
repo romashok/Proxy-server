@@ -4,7 +4,7 @@
 #include "event_queue.h"
 #include "socket_util.h"
 // legacy
-#define EXPECTED_CLIENTS 100
+#define EXPECTED_CLIENTS 1000
 
 namespace {
     int create_epollfd() {
@@ -70,22 +70,35 @@ void event_queue::reset_to_events(std::function<void(struct epoll_event&)> handl
 }
 
 void event_queue::delete_events_of_fd(int fd) {
-    std::cout << "Delete event: fd= " << fd << std::endl;
+    std::cout << "Delete IN event: fd= " << fd << std::endl;
 
     auto it = handlers.find(id{fd, EPOLLIN});
     if (it != handlers.end()) handlers.erase(it);
+    std::cout << "Delete OUT event: fd= " << fd << std::endl;
     it = handlers.find(id{fd, EPOLLOUT});
     if (it != handlers.end()) handlers.erase(it);
+}
 
+void event_queue::delete_fd_from_epoll(int fd) {
+    delete_events_of_fd(fd);
+
+    // We may not do explicit deletion of raii class for fd from epoll. It will be auto deleted after closing.
     struct epoll_event ev;
     ev.data.fd = fd;
     ev.events = NULL;
 
+    std::cout << "Delete event from epoll: fd= " << fd << std::endl;
     // legacy non-NULL ev param with EPOLL_CTL_DEL for kernel before 2.6.9
     if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_DEL, ev.data.fd, &ev) < 0) {
         perror("Failed to delete event");
+        std::cout << "Not deleted" << std::endl;
+    } else {
+        std::cout << "Deleted" << std::endl;
     }
 }
+
+
+
 
 void event_queue::invalidate_event(int fd, uint32_t events) {
     invalid_events.insert(id{fd, events});
@@ -152,11 +165,12 @@ void event_queue::handle_io_events(struct epoll_event& ev, uint32_t events) {
             std::function<void(struct epoll_event&)> handler = handlers[handler_id];
             handler(ev);
         } else {
-            std::cout << "INVALID {" <<  events_to_str(events) << "} EVENT" << std::endl;
+            std::cout << "INVALID {" <<  events_to_str(events) << "} EVENT of " << ev.data.fd << std::endl;
             for (auto& it : handlers) {
                 std::cout << it.first  << std::endl;
             }
-            exit();
+//            exit();
+            std::cout << "IGNORE INVALID EVENT" << std::endl;
         }
     }
 }

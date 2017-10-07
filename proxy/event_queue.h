@@ -17,7 +17,7 @@ struct event_queue
     void merge_events(std::function<void(struct epoll_event&)> handler, int fd, uint32_t new_events, uint32_t old_events);
     void reset_to_events(std::function<void(struct epoll_event&)> handler, int fd, uint32_t new_events);
     void delete_events_of_fd(int fd);
-
+    void delete_fd_from_epoll(int fd);
 
     void invalidate_event(int fd, uint32_t events);
 
