@@ -18,7 +18,6 @@ struct client_t : public peer_t {
     bool is_bad_request() const noexcept;
     bool has_data_to_send() const noexcept;
     bool has_right_server() const noexcept;
-    sockaddr get_server_addr();
 
     http_request* get_request() const noexcept;
 
@@ -35,6 +34,4 @@ struct client_t : public peer_t {
 private:
     std::unique_ptr<struct server_t> server;
     std::unique_ptr<http_request> request;
-
-    bool create_new_request() noexcept;
 };

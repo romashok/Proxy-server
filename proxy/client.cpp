@@ -22,11 +22,11 @@ void client_t::read_request() {
     read();
 
     if (!request) {
-        std::cout << "no request yet" << std::endl;
         size_t i = buffer.find("CONNECT");
         if (i != std::string::npos) {
             // todo catch this exception
-            throw new std::runtime_error("http CONNECT is not implemented");
+            std::cerr << "http CONNECT is not implemented" << std::endl;
+            throw new std::runtime_error("http CONNECT");
         }
 
         i = buffer.find("GET");
@@ -40,7 +40,6 @@ void client_t::read_request() {
             request.reset(new_request);
         }
 
-        // todo POST and PUT
         i = buffer.find("POST");
         if (i != std::string::npos) {
             std::cout << "new POST request" << std::endl;
@@ -77,24 +76,9 @@ bool client_t::has_right_server() const noexcept {
     return server && server->get_host() == request->get_host();
 }
 
-sockaddr client_t::get_server_addr() {
-    return std::move(request->get_server_addr());
-}
-
 bool client_t::has_request() const noexcept {
     return request.get() != nullptr;
 }
-
-//bool client_t::create_new_request() noexcept {
-//    std::cout << "create new request" << std::endl;
-
-//    if (buffer.substr()
-//    http_request_stateful* new_request = new (std::nothrow) http_request_stateful(get_fd());
-//    if (!new_request) return false;
-
-//    request.reset(new_request);
-//    return true;
-//}
 
 http_request* client_t::get_request() const noexcept {
     return request.get();
@@ -116,12 +100,8 @@ bool client_t::has_server() const noexcept {
 }
 
 std::string client_t::get_request_host() const noexcept {
-    if (has_server()) {
-        return server->get_host();
-    } else {
-        std::cerr << "Client has no server.";
-        return nullptr;
-    }
+    assert(request);
+    return request.get()->get_host();
 }
 
 void client_t::move_request_to_server() {
