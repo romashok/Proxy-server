@@ -118,18 +118,30 @@ void proxy_server::read_from_client(struct epoll_event& ev) {
         client->unbind();
     }
 
+    resolver.push_host(std::make_tuple(client->get_fd(), client->get_request_host()));
+}
 
-    bool is_resolved = resolver.resolve(client);
+void proxy_server::on_host_resolved(struct epoll_event& ev) {
+    std::cout << "on_host_resolved" << std::endl;
+    int client_fd;
+    std::string host;
+    sockaddr server_addr;
+    std::tie (client_fd, host, server_addr) = resolver.pop_resolved_host();
+    std::cout << "client: " << client_fd << " host: " << host << std::endl;
+    std::cout << std::this_thread::get_id() << std::endl;
+//    exit();
+    struct client_t* client = clients.at(client_fd).get();
 
     // on resolve
-    if (!is_resolved) {
-        std::cout << "INRESOLVED" << std::endl;
+    if (client->get_request_host() != host) {
+        std::cout << "Another host was expected" << std::endl;
         disconnect_client(client->get_fd());
         return;
     }
-    sockaddr server_addr = std::move(client->get_server_addr());
-    struct server_t* server;
 
+//    client->request->set_server_addr(server_addr);
+//    sockaddr server_addr = std::move(client->get_server_addr());
+    struct server_t* server;
     try {
         server = new struct server_t(server_addr);
         servers[server->get_fd()] = server;
