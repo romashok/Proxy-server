@@ -61,6 +61,11 @@ bool host_resolver::is_active() const noexcept {
 void host_resolver::push_host(std::tuple<int, std::string> cid_and_host) {
     std::cout << std::this_thread::get_id() << " push_host" << std::endl;
     std::lock_guard<std::mutex> lock(mutex);
+    // todo cache
+    /*
+    int client_fd;
+    std::string host;
+    std::tie (client_fd, host) = pending.front(); */
     pending.push(cid_and_host);
     cond.notify_one();
 }
@@ -72,9 +77,8 @@ std::tuple<int, std::string, sockaddr> host_resolver::pop_resolved_host() {
     res = read(evfd, &tmp, sizeof(uint64_t));
     if (res != sizeof(uint64_t)) {
         std::cout << "Error read from eventfd" << std::endl;
+        std::cerr << std::this_thread::get_id() << "Read " << tmp << std::endl;
     }
-    std::cout << std::this_thread::get_id() << "Read " << tmp << std::endl;
-
 
     auto result = resolved.front();
     resolved.pop();
@@ -89,7 +93,6 @@ void host_resolver::resolve() {
         });
 
         if (!active) break;
-
 
         int client_fd;
         std::string host;
@@ -110,7 +113,9 @@ void host_resolver::resolve() {
         hints.ai_socktype = SOCK_STREAM;
 
         if (getaddrinfo(new_host_name.c_str(), port.c_str(), &hints, &server_info) != 0) {
-            std::cout << std::this_thread::get_id() << "RESOLVER: getaddrinfo error!" << std::endl;
+            std::cout << std::flush;
+            std::cerr << std::this_thread::get_id() << "RESOLVER: getaddrinfo error!" << std::endl;
+            std::cerr << std::flush;
             break;
         }
 

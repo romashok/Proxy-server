@@ -32,10 +32,12 @@ void server_t::bind(client_t* new_client) {
 }
 
 bool server_t::is_request_passed() const noexcept {
+    assert(request);
     return request->is_passed();
 }
 
 http_response const* server_t::get_response() {
+//    assert(response);
     return response.get();
 }
 
@@ -65,6 +67,7 @@ void server_t::write_request() {
 
 void server_t::read_response() {
     int length = read();
+    std::cout << "read response" << std::endl;
 
     if (!response) {
         size_t i = buffer.find("Content-Length: ");

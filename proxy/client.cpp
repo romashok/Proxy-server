@@ -26,6 +26,7 @@ void client_t::read_request() {
         if (i != std::string::npos) {
             // todo catch this exception
             std::cerr << "http CONNECT is not implemented" << std::endl;
+//            return;
             throw new std::runtime_error("http CONNECT");
         }
 

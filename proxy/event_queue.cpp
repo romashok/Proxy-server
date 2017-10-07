@@ -70,16 +70,17 @@ void event_queue::reset_to_events(std::function<void(struct epoll_event&)> handl
 }
 
 void event_queue::delete_events_of_fd(int fd) {
-    std::cout << "Delete IN event: fd= " << fd << std::endl;
+//    std::cout << "Delete IN event: fd= " << fd << std::endl;
 
     auto it = handlers.find(id{fd, EPOLLIN});
     if (it != handlers.end()) handlers.erase(it);
-    std::cout << "Delete OUT event: fd= " << fd << std::endl;
+//    std::cout << "Delete OUT event: fd= " << fd << std::endl;
     it = handlers.find(id{fd, EPOLLOUT});
     if (it != handlers.end()) handlers.erase(it);
 }
 
 void event_queue::delete_fd_from_epoll(int fd) {
+    std::cout << "Delete event from epoll: fd= " << fd << std::endl;
     delete_events_of_fd(fd);
 
     // We may not do explicit deletion of raii class for fd from epoll. It will be auto deleted after closing.
@@ -87,7 +88,6 @@ void event_queue::delete_fd_from_epoll(int fd) {
     ev.data.fd = fd;
     ev.events = NULL;
 
-    std::cout << "Delete event from epoll: fd= " << fd << std::endl;
     // legacy non-NULL ev param with EPOLL_CTL_DEL for kernel before 2.6.9
     if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_DEL, ev.data.fd, &ev) < 0) {
         perror("Failed to delete event");
@@ -120,7 +120,7 @@ void event_queue::handle_events(int amount) {
     invalid_events.clear();
 
     for (int i = 0; i < amount; ++i) {
-        std::cout << "fd: " << events_list[i].data.fd << " flags: " << events_to_str(events_list[i].events) << std::endl;
+//        std::cout << "fd: " << events_list[i].data.fd << " flags: " << events_to_str(events_list[i].events) << std::endl;
 
         handle_io_events(events_list[i], EPOLLOUT);
         handle_io_events(events_list[i], EPOLLIN);
@@ -165,12 +165,14 @@ void event_queue::handle_io_events(struct epoll_event& ev, uint32_t events) {
             std::function<void(struct epoll_event&)> handler = handlers[handler_id];
             handler(ev);
         } else {
-            std::cout << "INVALID {" <<  events_to_str(events) << "} EVENT of " << ev.data.fd << std::endl;
+           /* std::cout << "INVALID {" <<  events_to_str(events) << "} EVENT of " << ev.data.fd << std::endl;
             for (auto& it : handlers) {
                 std::cout << it.first  << std::endl;
-            }
+            }*/
 //            exit();
-            std::cout << "IGNORE INVALID EVENT" << std::endl;
+            std::cout << std::flush;
+            std::cerr << "IGNORE INVALID EVENT" << std::endl;
+            std::cerr << std::flush;
         }
     }
 }
