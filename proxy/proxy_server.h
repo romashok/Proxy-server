@@ -25,10 +25,10 @@ struct proxy_server
 
     void on_host_resolved(struct epoll_event& ev);
 private:
-    bool is_working;
     fd_t proxy_socket;
     event_queue queue;
     host_resolver resolver;
+    bool is_working;
 
     std::map<uintptr_t, std::unique_ptr<client_t>> clients;
     std::map<uintptr_t, server_t*> servers;

@@ -86,7 +86,7 @@ void event_queue::delete_fd_from_epoll(int fd) {
     // We may not do explicit deletion of raii class for fd from epoll. It will be auto deleted after closing.
     struct epoll_event ev;
     ev.data.fd = fd;
-    ev.events = NULL;
+    ev.events = 0;
 
     // legacy non-NULL ev param with EPOLL_CTL_DEL for kernel before 2.6.9
     if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_DEL, ev.data.fd, &ev) < 0) {

@@ -27,7 +27,7 @@ void client_t::read_request() {
             // todo catch this exception
             std::cerr << "http CONNECT is not implemented" << std::endl;
 //            return;
-            throw new std::runtime_error("http CONNECT");
+            throw std::runtime_error("http CONNECT");
         }
 
         i = buffer.find("GET");
@@ -115,7 +115,7 @@ int client_t::get_server_fd() {
         return server->get_fd();
     } else {
         std::cout << "Client error: Get server fd error, no server." << std::endl;
-        throw new std::runtime_error("No server");
+        throw std::runtime_error("No server");
     }
 }
 

@@ -33,7 +33,7 @@ proxy_server::proxy_server(uint32_t port):
         this->on_host_resolved(ev);
     }, resolver.get_eventfd(), EPOLLIN);
 
-    queue.create_events([this](struct epoll_event& ev) {
+    queue.create_events([this](struct epoll_event&) {
         this->connect_client();
     }, proxy_socket.get_fd(), EPOLLIN);
 }

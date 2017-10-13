@@ -44,7 +44,7 @@ void http_request_with_body::parse_header() noexcept {
     try {
         parse_content_length();
     } catch (...) {
-        throw new std::runtime_error("POST without content-length are not implemented");
+        throw std::runtime_error("POST without content-length are not implemented");
     }
 
     full_header = true;

@@ -62,10 +62,11 @@ void host_resolver::push_host(std::tuple<int, std::string> cid_and_host) {
     std::cout << std::this_thread::get_id() << " push_host" << std::endl;
     std::lock_guard<std::mutex> lock(mutex);
     // todo cache
-    /*
+
     int client_fd;
     std::string host;
-    std::tie (client_fd, host) = pending.front(); */
+    std::tie (client_fd, host) = cid_and_host;
+    std::cout << " for client " <<  client_fd << std::endl;
     pending.push(cid_and_host);
     cond.notify_one();
 }

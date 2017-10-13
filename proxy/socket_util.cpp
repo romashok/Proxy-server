@@ -59,7 +59,7 @@ socket_t::~socket_t()
 
 std::string socket_t::read(size_t buffer_size) {
     std::vector<char> buffer(buffer_size);
-    size_t length = recv(fd, buffer.data(), buffer_size, 0);
+    ssize_t length = recv(fd, buffer.data(), buffer_size, 0);
 
     if (length == -1)
         throw std::runtime_error("Read from socket failed!");
@@ -69,7 +69,7 @@ std::string socket_t::read(size_t buffer_size) {
 
 
 size_t socket_t::write(std::string const& msg) {
-    size_t length = send(fd, msg.data(), msg.size(), 0);
+    ssize_t length = send(fd, msg.data(), msg.size(), 0);
 
     if (length == -1)
         throw std::runtime_error("Write to socket failed!");
