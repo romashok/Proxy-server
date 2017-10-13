@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sstream>
 #include <unordered_map>
 #include <memory>
 
@@ -58,8 +59,8 @@ public:
         }
     }
 
-    void print() const {
-        list.print();
+    std::string to_string() const {
+        return list.to_string();
     }
 
 private:
@@ -117,19 +118,21 @@ private:
             push_front(cur);
         }
 
-        void print() const {
-            std::cout << "{";
+        std::string to_string() const {
+            std::stringstream ss;
+            ss << "{";
 
             auto it = fake_first->next;
             while (it != fake_last) {
-                std::cout << it->key << ": " << it->item.second;
+                ss << it->key << ": " << it->item.second;
                 it = it->next;
 
                 if (it != fake_last) {
-                    std::cout << ", ";
+                    ss << ", ";
                 }
             }
-            std::cout << "}\n";
+            ss << "}";
+            return ss.str();
         }
 
         // expected memory leak (cyclic links)
