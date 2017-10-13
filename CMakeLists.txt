@@ -21,6 +21,7 @@ set(SRC_LIST
 "proxy/host_resolver.cpp"
 "proxy/utils.h"
 "proxy/utils.cpp"
+"proxy/lru_cache.h"
 
 "proxy/http/http_request.h"
 "proxy/http/http_request.cpp"
