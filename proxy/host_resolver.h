@@ -11,6 +11,7 @@
 
 
 #include "client.h"
+#include "lru_cache.h"
 
 struct client_t;
 
@@ -24,10 +25,12 @@ struct host_resolver {
 
     void push_host(std::tuple<int, std::string> cid_and_host);
     std::tuple<int, std::string, sockaddr> pop_resolved_host();
+
     ~host_resolver();
 private:
     bool active;
 
+    lru_cache<std::string, sockaddr> cache;
     std::queue<std::tuple<int, std::string>> pending;
     std::queue<std::tuple<int, std::string, sockaddr>> resolved;
 
@@ -37,4 +40,5 @@ private:
     std::vector<std::thread> threads;
 
     std::tuple<int, std::string, sockaddr> push();
+    void notify_epoll();
 };

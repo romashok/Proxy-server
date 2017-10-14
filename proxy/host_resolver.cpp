@@ -10,9 +10,11 @@
 #include <sys/eventfd.h>
 
 #include "host_resolver.h"
-#include "client.h"
 
-host_resolver::host_resolver()
+#define CACHE_SIZE 300
+
+host_resolver::host_resolver():
+    cache(CACHE_SIZE)
 {
     evfd = eventfd(0, EFD_SEMAPHORE);
     if (evfd == -1) {
@@ -61,12 +63,20 @@ bool host_resolver::is_active() const noexcept {
 void host_resolver::push_host(std::tuple<int, std::string> cid_and_host) {
     std::cout << std::this_thread::get_id() << " push_host" << std::endl;
     std::lock_guard<std::mutex> lock(mutex);
-    // todo cache
 
     int client_fd;
     std::string host;
     std::tie (client_fd, host) = cid_and_host;
     std::cout << " for client " <<  client_fd << std::endl;
+
+    auto it = cache.peek(host);
+    if (it.first) {
+        std::cout << "host from cache: " << host << std::endl;
+        resolved.push(std::make_tuple(client_fd, host, it.second));
+        notify_epoll();
+        return;
+    }
+
     pending.push(cid_and_host);
     cond.notify_one();
 }
@@ -126,12 +136,16 @@ void host_resolver::resolve() {
         {
             std::lock_guard<std::mutex> lock(mutex);
             resolved.push(std::make_tuple(client_fd, host, server_addr));
-
-            uint64_t u = 1;
-            int res = write(evfd, &u, sizeof(uint64_t));
-            if (res == -1) {
-                perror("Write to eventfd error");
-            }
+            cache.push(host, server_addr);
+            notify_epoll();
         }
+    }
+}
+
+void host_resolver::notify_epoll() {
+    uint64_t u = 1;
+    int res = write(evfd, &u, sizeof(uint64_t));
+    if (res == -1) {
+        perror("Write to eventfd error");
     }
 }
