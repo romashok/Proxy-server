@@ -76,8 +76,8 @@ void server_t::read_response() {
             response.reset(new http_response_plain());
         }
 
-        i = buffer.find("Transfer-Encoding: chunked");
-        if (i != std::string::npos) {
+        if (buffer.find("Transfer-Encoding: chunked") != std::string::npos ||
+            buffer.find("transfer-encoding: chunked") != std::string::npos) {
             std::cout << "new chunked response" << std::endl;
             response.reset(new http_response_chunked());
         }

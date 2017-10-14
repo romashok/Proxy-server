@@ -160,7 +160,7 @@ void proxy_server::read_from_client(struct epoll_event& ev) {
     resolver.push_host(std::make_tuple(client->get_fd(), client->get_request_host()));
 }
 
-void proxy_server::on_host_resolved(struct epoll_event& ev) {
+void proxy_server::on_host_resolved(struct epoll_event&) {
     std::cout << "on_host_resolved" << std::endl;
 
 
