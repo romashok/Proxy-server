@@ -24,30 +24,28 @@ void client_t::read_request() {
     if (!request) {
         size_t i = buffer.find("CONNECT");
         if (i != std::string::npos) {
-            // todo catch this exception
             std::cerr << "http CONNECT is not implemented" << std::endl;
-//            return;
             throw std::runtime_error("http CONNECT");
         }
 
         i = buffer.find("GET");
         if (i != std::string::npos) {
-            std::cout << "new GET request" << std::endl;
+//            std::cout << "new GET request" << std::endl;
             http_request* new_request = new (std::nothrow) http_request_bodyless(get_fd());
             if (!new_request) {
-                std::cerr << "bad alloc" << std::endl;
-                return;
+                std::cerr << "GET bad alloc" << std::endl;
+                throw std::runtime_error("GET bad alloc");
             }
             request.reset(new_request);
         }
 
         i = buffer.find("POST");
         if (i != std::string::npos) {
-            std::cout << "new POST request" << std::endl;
+//            std::cout << "new POST request" << std::endl;
             http_request* new_request = new (std::nothrow) http_request_with_body(get_fd());
             if (!new_request) {
-                std::cerr << "bad alloc" << std::endl;
-                return;
+                std::cerr << "POST bad alloc" << std::endl;
+                throw std::runtime_error("POST bad alloc");
             }
             request.reset(new_request);
         }
@@ -114,7 +112,7 @@ int client_t::get_server_fd() {
     if (server) {
         return server->get_fd();
     } else {
-        std::cout << "Client error: Get server fd error, no server." << std::endl;
+        std::cerr << "Client error: Get server fd error, no server." << std::endl;
         throw std::runtime_error("No server");
     }
 }
