@@ -12,6 +12,10 @@ bool http_response::is_keep_alive() const noexcept {
     return keep_alive;
 }
 
+void http_response::finish_connection() noexcept {
+    finished = true;
+}
+
 bool http_response::is_header_obtained() const noexcept {
     return full_header;
 }

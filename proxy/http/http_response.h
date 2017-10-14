@@ -14,6 +14,7 @@ struct http_response {
     virtual bool is_obtained() const noexcept;
     virtual bool is_passed() const noexcept;
     virtual bool is_keep_alive() const noexcept;
+    virtual void finish_connection() noexcept;
 
     virtual ~http_response()=default;
 
@@ -22,7 +23,7 @@ protected:
     std::string text;
 
     bool full_header, full_body;
-    bool passed, keep_alive;
+    bool passed, keep_alive, finished;
 
 
     virtual bool is_header_obtained() const noexcept;
