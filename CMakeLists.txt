@@ -32,10 +32,14 @@ set(SRC_LIST
 
 "proxy/http/http_response.h"
 "proxy/http/http_response.cpp"
+"proxy/http/http_response_bodyless.h"
+"proxy/http/http_response_bodyless.cpp"
 "proxy/http/http_response_plain.h"
 "proxy/http/http_response_plain.cpp"
 "proxy/http/http_response_chunked.h"
 "proxy/http/http_response_chunked.cpp"
+#"proxy/http/http_response_closed_connection.h"
+#"proxy/http/http_response_closed_connection.cpp"
 )
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})

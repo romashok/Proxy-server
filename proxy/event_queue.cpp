@@ -115,7 +115,7 @@ int event_queue::get_events_amount() {
 
 
 void event_queue::handle_events(int amount) {
-    std::cout << "\nHandle new events: " << amount << std::endl;
+//    std::cout << "\nHandle new events: " << amount << std::endl;
     invalid_events.clear();
 
     for (int i = 0; i < amount; ++i) {

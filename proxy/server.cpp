@@ -73,7 +73,7 @@ void server_t::write_request() {
 
 void server_t::read_response() {
     int length = read();
-    std::cout << "read {" << length << "} bytes" << std::endl;
+//    std::cout << "read {" << length << "} bytes" << std::endl;
 //    std::cout << "read response" << std::endl;
 
     if (!response) {
@@ -122,6 +122,10 @@ void server_t::read_response() {
         if (length == 0) {
             response->finish_connection();
         }
+        if (get_buffer().size() == 0) {
+            std::exit(0);
+        }
+        std::cout << "append to response {" << get_buffer().size() << "} bytes" << std::endl;
         response->append_data(get_buffer());
         buffer.clear();
     }
