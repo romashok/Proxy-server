@@ -13,6 +13,8 @@
 #include "socket_api.h"
 #include "utils.h"
 
+
+
 proxy_server::proxy_server(uint32_t port):
     proxy_socket(socket_api::create_main_socket(port)),
     queue(),
@@ -59,7 +61,7 @@ void proxy_server::run() {
         std::cout << e.what();
         exit();
     } catch (...) {
-        std::cout << "UNKNOWN EXCEPTION!"  << " Proxy server stoped" <<  std::endl;
+        std::cout << "UNKNOWN EXCEPTION!" << " Proxy server stoped" <<  std::endl;
         exit();
     }
 }
@@ -76,41 +78,46 @@ void proxy_server::connect_client() {
 }
 
 void proxy_server::disconnect_client(int fd) {
-    // todo
     std::cout << "Disconnect client [" << fd << "]" << std::endl;
-//    queue.delete_fd_from_epoll(fd);
+
+    // todo delete server`s handlers if has server
+    struct client_t* client = clients.at(fd).get();
+    if (client->has_server()) {
+        disconnect_server(client->get_server_fd());
+    }
+
     clients.erase(fd);
 }
 
 void proxy_server::disconnect_server(int fd) {
-    // todo
-    std::cout << "Disconnect server[" << fd << "]" << std::endl;
-//    queue.delete_events_of_fd(fd);
+    std::cout << "Disconnect server [" << fd << "]" << std::endl;
     servers.erase(fd);
 }
 
 void proxy_server::read_from_client(struct epoll_event& ev) {
-    std::cout << "Read from client" << std::endl;
+//    std::cout << "Read from client" << std::endl;
+    struct client_t* client = clients.at(ev.data.fd).get();
+
     if (ev.events & EPOLLERR || ev.events & EPOLLHUP) {
-        std::cout << "Event error " << events_to_str(ev.events) << std::endl;
+        std::cout << "Client read event error " << events_to_str(ev.events) << std::endl;
+        queue.delete_fd_from_epoll(client->get_fd());
+        disconnect_client(client->get_fd());
+        return;
     }
 
-    struct client_t* client = clients.at(ev.data.fd).get();
     try {
         client->read_request();
     } catch (...) {
-        std::cout << "Force client disconnect" << std::endl;
-        queue.delete_events_of_fd(client->get_fd());
-        // todo delete server`s handlers if has server
+        std::cout << "Force client [" << client->get_fd() << "] disconnect" << std::endl;
+        queue.delete_fd_from_epoll(client->get_fd());
         disconnect_client(client->get_fd());
         return;
     }
 
     // not full header
     if (!client->has_request()) {
-        std::cout << "not full header" << std::endl;
+//        std::cout << "not full header" << std::endl;
         if (client->get_buffer().empty()) {
-            // todo
             std::cout << "disconnect strange client with empty request" << std::endl;
             if (client->has_server()) {
                 std::cout << "has server?" << std::endl;
@@ -121,7 +128,8 @@ void proxy_server::read_from_client(struct epoll_event& ev) {
             queue.delete_events_of_fd(client->get_fd());
             disconnect_client(client->get_fd());
         }
-        std::cout << "{" << client->get_buffer() << "}" << std::endl;
+
+//        std::cout << "{" << client->get_buffer() << "}" << std::endl;
         return;
     }
 
@@ -132,7 +140,7 @@ void proxy_server::read_from_client(struct epoll_event& ev) {
     }
 
     if (!client->has_data_to_send()) {
-        std::cout << "no data to send" << std::endl;
+//        std::cout << "no data to send" << std::endl;
         return;
     }
 
@@ -142,50 +150,50 @@ void proxy_server::read_from_client(struct epoll_event& ev) {
     /*
     if (client->has_right_server()) {
         std::cout << "send data to server" << std::endl;
-        std::cout << "should not have right server" << std::endl;
-        exit();
-        // todo send data to server
         client->move_request_to_server();
-        // todo create -> merge
-        queue.create_events([this](struct epoll_event& ev) {
-            this->write_to_server(ev);
-        }, client->get_server_fd(), EPOLLOUT);
+        // todo chould be in reading state
         return;
     } else {
         client->unbind();
     }
     */
-    client->unbind();
 
+    client->unbind();
     resolver.push_host(std::make_tuple(client->get_fd(), client->get_request_host()));
 }
 
 void proxy_server::on_host_resolved(struct epoll_event&) {
-    std::cout << "on_host_resolved" << std::endl;
+//    std::cout << "on_host_resolved" << std::endl;
 
-
+    bool ok;
     int client_fd;
     std::string host;
     sockaddr server_addr;
-    std::tie (client_fd, host, server_addr) = resolver.pop_resolved_host();
-    std::cout << "client: " << client_fd << " host: " << host << std::endl;
+    std::tie (ok, client_fd, host, server_addr) = resolver.pop_resolved_host();
+//    std::cout << "client: " << client_fd << " host: " << host << std::endl;
 
     if (!clients.count(client_fd)) {
-        std::cout << "orphaned host: client was deleted" << std::endl;
+        std::cout << "Orphaned host: client was deleted" << std::endl;
         return;
     }
+
     struct client_t* client = clients.at(client_fd).get();
 
     if (!client->has_request() || client->get_request_host() != host) {
         std::cout << "Another host was expected" << std::endl;
-//        exit();
-//        disconnect_client(client->get_fd());
         return;
     }
 
-    // todo check: if already has server
     if (client->has_server()) {
-        std::cout << "client already has server" << std::endl;
+        std::cout << "Client already has server" << std::endl;
+        return;
+    }
+
+    if (!ok) {
+        std::cout << "Client disconnected because of resolve error" << std::endl;
+        queue.delete_fd_from_epoll(client_fd);
+        disconnect_client(client_fd);
+        return;
     }
 
     struct server_t* server;
@@ -206,59 +214,67 @@ void proxy_server::on_host_resolved(struct epoll_event&) {
 }
 
 void proxy_server::write_to_server(epoll_event& ev) {
-    std::cout << "Writing to server" << std::endl;
-    if (ev.events & EPOLLERR || ev.events & EPOLLHUP) {
-        std::cout << "Event error " << events_to_str(ev.events) << std::endl;
-    }
-
+//    std::cout << "Writing to server" << std::endl;
     server_t* server = servers.at(ev.data.fd);
+
+    if (ev.events & EPOLLERR || ev.events & EPOLLHUP) {
+        std::cout << "Server write event error " << events_to_str(ev.events) << std::endl;
+        queue.delete_fd_from_epoll(server->get_fd());
+        disconnect_client(server->get_fd());
+        return;
+    }
 
     server->write_request();
     if (server->is_request_passed()) {
-        std::cout << "request passed" << std::endl;
+//        std::cout << "request passed" << std::endl;
         queue.invalidate_event(server->get_fd(), EPOLLOUT);
         queue.reset_to_events([this](struct epoll_event& ev) {
             this->read_from_server(ev);
         }, server->get_fd(), EPOLLIN);
     } else {
-        std::cout << "want send more" << std::endl;
+//        std::cout << "want send more" << std::endl;
     }
 }
 
 void proxy_server::read_from_server(struct epoll_event& ev) {
-    std::cout << "Reading from server" << std::endl;
-    if (ev.events & EPOLLERR || ev.events & EPOLLHUP) {
-        std::cout << "Event error " << events_to_str(ev.events) << std::endl;
-    }
-    std::cout << events_to_str(ev.events) << std::endl;
+//    std::cout << "Reading from server" << std::endl;
     server_t* server = servers.at(ev.data.fd);
+
+    if (ev.events & EPOLLERR || ev.events & EPOLLHUP) {
+        // todo write bad request to client
+        std::cout << "Server read event error " << events_to_str(ev.events) << std::endl;
+        queue.delete_fd_from_epoll(server->get_fd());
+        queue.delete_fd_from_epoll(server->get_client_fd());
+        disconnect_client(server->get_client_fd());
+        return;
+    }
 
     server->read_response();
 
-    // todo write available part
-    if (server->get_response() && server->get_response()->is_obtained()) {
-        std::cout << "response obtained" << std::endl;
-        queue.invalidate_event(server->get_fd(), EPOLLIN);
-        queue.delete_fd_from_epoll(server->get_fd());
+//    if (server->get_response() && server->get_response()->has_data_to_send()) {
+        if (server->get_response() && server->get_response()->is_obtained()) {
+        if (server->get_response()->is_obtained()) {
+            queue.invalidate_event(server->get_fd(), EPOLLIN);
+            queue.delete_fd_from_epoll(server->get_fd());
+        }
 
         queue.merge_events([this](struct epoll_event& ev) {
             this->write_to_client(ev);
         }, server->get_client_fd(), EPOLLOUT, EPOLLIN);
     } else {
-        std::cout << "no enough data of response" << std::endl;
-        std::cout << "{" << server->get_buffer()  << "}" << std::endl;
+//        std::cout << "no enough data of response" << std::endl;
+//        std::cout << "{" << server->get_buffer()  << "}" << std::endl;
     }
 }
 
 void proxy_server::write_to_client(struct epoll_event& ev) {
-    std::cout << "Writing to client" << std::endl;
+//    std::cout << "Writing to client" << std::endl;
 
     struct client_t* client = clients.at(ev.data.fd).get();
     struct server_t* server = client->get_server();
     if (ev.events & EPOLLERR || ev.events & EPOLLHUP) {
         queue.invalidate_event(client->get_fd(),EPOLLOUT);
 
-        std::cout << events_to_str(ev.events) << std::endl;
         queue.delete_events_of_fd(server->get_fd());
         queue.delete_events_of_fd(client->get_fd());
         disconnect_server(server->get_fd());
@@ -267,7 +283,7 @@ void proxy_server::write_to_client(struct epoll_event& ev) {
     }
 
     if (server->get_response()->is_passed()) {
-        std::cout << "response passed" << std::endl;
+//        std::cout << "response passed" << std::endl;
         queue.invalidate_event(client->get_fd(), EPOLLOUT);
         queue.reset_to_events([this](struct epoll_event& ev) {
             this->read_from_client(ev);
@@ -281,20 +297,20 @@ void proxy_server::write_to_client(struct epoll_event& ev) {
     }
 
     if (!server->get_response()->has_data_to_send()) {
-        std::cout << "empty response" << std::endl;
+//        std::cout << "empty response" << std::endl;
         return;
     }
 
-    std::cout << "response: has date to send" << std::endl;
+//    std::cout << "response: has date to send" << std::endl;
 
     std::string chunk = server->get_response()->get_next_data_to_send();
     size_t delta = client->write_response(chunk);
-    std::cout << "chunk size: " <<  chunk.size() << "\ndelta: " << delta << std::endl;
-//    std::cout << "{\n" <<  chunk << "}\n" << delta << std::endl;
+    std::cout << "write to client[" << client->get_fd() << "] chunk size:{" <<  chunk.size() << "} delta:{" << delta << "}" << std::endl;
+//    std::cout << "{\n" <<  chunk << "\n} " << delta << std::endl;
     server->move_response_offset(delta);
 
     if (server->get_response()->is_passed()) {
-        std::cout << "response passed" << std::endl;
+//        std::cout << "response passed" << std::endl;
         queue.invalidate_event(client->get_fd(), EPOLLOUT);
         queue.reset_to_events([this](struct epoll_event& ev) {
             this->read_from_client(ev);
