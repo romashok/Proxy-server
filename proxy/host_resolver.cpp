@@ -61,18 +61,17 @@ bool host_resolver::is_active() const noexcept {
 }
 
 void host_resolver::push_host(std::tuple<int, std::string> cid_and_host) {
-    std::cout << std::this_thread::get_id() << " push_host" << std::endl;
     std::lock_guard<std::mutex> lock(mutex);
 
     int client_fd;
     std::string host;
     std::tie (client_fd, host) = cid_and_host;
-    std::cout << " for client " <<  client_fd << std::endl;
+    std::cout << "pushed host {" << host << "} for client {" <<  client_fd << "}" << std::endl;
 
     auto it = cache.peek(host);
     if (it.first) {
-        std::cout << "host from cache: " << host << std::endl;
-        resolved.push(std::make_tuple(client_fd, host, it.second));
+        std::cout << "get from cache: " << host << std::endl;
+        resolved.push(std::make_tuple(true, client_fd, host, it.second));
         notify_epoll();
         return;
     }
@@ -81,14 +80,13 @@ void host_resolver::push_host(std::tuple<int, std::string> cid_and_host) {
     cond.notify_one();
 }
 
-std::tuple<int, std::string, sockaddr> host_resolver::pop_resolved_host() {
+std::tuple<bool, int, std::string, sockaddr> host_resolver::pop_resolved_host() {
     std::lock_guard<std::mutex> lock(mutex);
     uint64_t tmp;
     int res;
     res = read(evfd, &tmp, sizeof(uint64_t));
     if (res != sizeof(uint64_t)) {
-        std::cout << "Error read from eventfd" << std::endl;
-        std::cerr << std::this_thread::get_id() << "Read " << tmp << std::endl;
+        std::cerr << "Error read from eventfd" << std::endl;
     }
 
     auto result = resolved.front();
@@ -125,9 +123,12 @@ void host_resolver::resolve() {
 
         if (getaddrinfo(new_host_name.c_str(), port.c_str(), &hints, &server_info) != 0) {
             std::cout << std::flush;
-            std::cerr << std::this_thread::get_id() << "RESOLVER: getaddrinfo error!" << std::endl;
+            std::cerr << "RESOLVER: getaddrinfo error!" << std::endl;
             std::cerr << std::flush;
-            break;
+            // ATTENTION: UB in servaddr
+            resolved.push(std::make_tuple(false, client_fd, host, *server_info->ai_addr));
+            notify_epoll();
+            return;
         }
 
         sockaddr server_addr = *server_info->ai_addr;
@@ -135,7 +136,7 @@ void host_resolver::resolve() {
 
         {
             std::lock_guard<std::mutex> lock(mutex);
-            resolved.push(std::make_tuple(client_fd, host, server_addr));
+            resolved.push(std::make_tuple(true, client_fd, host, server_addr));
             cache.push(host, server_addr);
             notify_epoll();
         }

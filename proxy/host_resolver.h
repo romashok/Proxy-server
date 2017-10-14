@@ -24,7 +24,7 @@ struct host_resolver {
     void resolve();
 
     void push_host(std::tuple<int, std::string> cid_and_host);
-    std::tuple<int, std::string, sockaddr> pop_resolved_host();
+    std::tuple<bool, int, std::string, sockaddr> pop_resolved_host();
 
     ~host_resolver();
 private:
@@ -32,7 +32,7 @@ private:
 
     lru_cache<std::string, sockaddr> cache;
     std::queue<std::tuple<int, std::string>> pending;
-    std::queue<std::tuple<int, std::string, sockaddr>> resolved;
+    std::queue<std::tuple<bool, int, std::string, sockaddr>> resolved;
 
     int evfd;
     std::mutex mutex;
