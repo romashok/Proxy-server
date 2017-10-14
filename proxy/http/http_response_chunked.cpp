@@ -35,6 +35,7 @@ void http_response_chunked::parse_header() {
     size_t i = text.find("\r\n\r\n");
     if (i == std::string::npos) return;
 
+    parse_connection_type();
 
     current_chunk = text.substr(0, i + 4);
     text.erase(0, current_chunk.size());

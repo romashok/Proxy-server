@@ -36,6 +36,7 @@ void http_response_plain::parse_header() noexcept {
 
     header_lenght = i + 4;
     parse_content_length();
+    parse_connection_type();
 
     full_header = true;
 }
