@@ -25,8 +25,8 @@ event_queue::event_queue():
 {}
 
 void event_queue::create_events(std::function<void(struct epoll_event&)> handler, int fd, uint32_t events) {
-    std::cout << "Create event: fd= " << fd
-              << " flags= " << events_to_str(events) << std::endl;
+//    std::cout << "Create event: fd= " << fd
+//              << " flags= " << events_to_str(events) << std::endl;
     handlers[id{fd, events}] = handler;
 
     struct epoll_event ev;
@@ -39,9 +39,9 @@ void event_queue::create_events(std::function<void(struct epoll_event&)> handler
 }
 
 void event_queue::merge_events(std::function<void(struct epoll_event&)> handler, int fd, uint32_t new_events, uint32_t old_events) {
-    std::cout << "Merge event: fd= " << fd
-              << " old: " << events_to_str(old_events)
-              << " new: " << events_to_str(new_events) << std::endl;
+//    std::cout << "Merge event: fd= " << fd
+//              << " old: " << events_to_str(old_events)
+//              << " new: " << events_to_str(new_events) << std::endl;
 
     handlers[id{fd, new_events}] = handler;
 
@@ -55,8 +55,8 @@ void event_queue::merge_events(std::function<void(struct epoll_event&)> handler,
 }
 
 void event_queue::reset_to_events(std::function<void(struct epoll_event&)> handler, int fd, uint32_t new_events) {
-    std::cout << "Reset event: fd= " << fd
-              << " new: " << events_to_str(new_events) << std::endl;
+//    std::cout << "Reset event: fd= " << fd
+//              << " new: " << events_to_str(new_events) << std::endl;
 
     handlers[id{fd, new_events}] = handler;
 
@@ -71,7 +71,6 @@ void event_queue::reset_to_events(std::function<void(struct epoll_event&)> handl
 
 void event_queue::delete_events_of_fd(int fd) {
 //    std::cout << "Delete IN event: fd= " << fd << std::endl;
-
     auto it = handlers.find(id{fd, EPOLLIN});
     if (it != handlers.end()) handlers.erase(it);
 //    std::cout << "Delete OUT event: fd= " << fd << std::endl;
@@ -80,7 +79,7 @@ void event_queue::delete_events_of_fd(int fd) {
 }
 
 void event_queue::delete_fd_from_epoll(int fd) {
-    std::cout << "Delete event from epoll: fd= " << fd << std::endl;
+//    std::cout << "Delete event from epoll: fd= " << fd << std::endl;
     delete_events_of_fd(fd);
 
     // We may not do explicit deletion of raii class for fd from epoll. It will be auto deleted after closing.
@@ -91,9 +90,9 @@ void event_queue::delete_fd_from_epoll(int fd) {
     // legacy non-NULL ev param with EPOLL_CTL_DEL for kernel before 2.6.9
     if (epoll_ctl(epoll.get_fd(), EPOLL_CTL_DEL, ev.data.fd, &ev) < 0) {
         perror("Failed to delete event");
-        std::cout << "Not deleted" << std::endl;
+//        std::cout << "Not deleted" << std::endl;
     } else {
-        std::cout << "Deleted" << std::endl;
+//        std::cout << "Deleted" << std::endl;
     }
 }
 
@@ -165,14 +164,7 @@ void event_queue::handle_io_events(struct epoll_event& ev, uint32_t events) {
             std::function<void(struct epoll_event&)> handler = handlers[handler_id];
             handler(ev);
         } else {
-           /* std::cout << "INVALID {" <<  events_to_str(events) << "} EVENT of " << ev.data.fd << std::endl;
-            for (auto& it : handlers) {
-                std::cout << it.first  << std::endl;
-            }*/
-//            exit();
-            std::cout << std::flush;
             std::cerr << "IGNORE INVALID EVENT" << std::endl;
-            std::cerr << std::flush;
         }
     }
 }
