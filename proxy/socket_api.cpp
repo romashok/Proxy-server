@@ -1,5 +1,5 @@
 #include "socket_api.h"
-
+#include <signal.h>
 namespace socket_api {
     int create_socket(int domain, int type) {
         int fd = ::socket(domain, type, 0);

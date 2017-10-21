@@ -8,6 +8,9 @@
 #include <stdio.h>
 #include <stdexcept>
 #include <iostream>
+#include <sys/signalfd.h>
+#include <signal.h>
+#include <stdlib.h>
 
 namespace socket_api {
     int create_socket(int domain, int type);

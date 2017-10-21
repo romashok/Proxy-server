@@ -24,6 +24,8 @@ struct proxy_server
     void write_to_client(struct epoll_event& ev);
 
     void on_host_resolved(struct epoll_event& ev);
+
+    void stop();
 private:
     fd_t proxy_socket;
     event_queue queue;

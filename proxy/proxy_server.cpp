@@ -12,7 +12,9 @@
 
 #include "socket_api.h"
 #include "utils.h"
-
+#include <sys/signalfd.h>
+#include <signal.h>
+#include <stdlib.h>
 
 
 proxy_server::proxy_server(uint32_t port):
@@ -30,7 +32,6 @@ proxy_server::proxy_server(uint32_t port):
     }
     std::cout << "EventFd on fd[" << resolver.get_eventfd() << "]." << std::endl;
 
-
     queue.create_events([this](struct epoll_event& ev) {
         this->on_host_resolved(ev);
     }, resolver.get_eventfd(), EPOLLIN);
@@ -44,26 +45,17 @@ proxy_server::proxy_server(uint32_t port):
 void proxy_server::run() {
     std::cout << "Start proxy server!" << std::endl;
 
-    try{
-        while(is_working) {
-            int amount = queue.get_events_amount();
+    while(is_working) {
+        int amount = queue.get_events_amount();
 
-            if (amount == -1) {
-                perror("Error occured during getting new epoll events!");
-                continue;
-            }
-
-            queue.handle_events(amount);
+        if (amount == -1) {
+            perror("Error occured during getting new epoll events!");
+            continue;
         }
-        std::cout << "proxy server stoped" << std::endl;
-        std::exit(0);
-    } catch (std::runtime_error& e) {
-        std::cout << e.what();
-        exit();
-    } catch (...) {
-        std::cout << "UNKNOWN EXCEPTION!" << " Proxy server stoped" <<  std::endl;
-        exit();
+
+        queue.handle_events(amount);
     }
+    std::cout << "Server is not working" << std::endl;
 }
 
 void proxy_server::connect_client() {
@@ -321,4 +313,9 @@ void proxy_server::write_to_client(struct epoll_event& ev) {
         disconnect_server(server->get_fd());
         disconnect_client(client->get_fd());
     }
+}
+
+void proxy_server::stop() {
+    is_working = false;
+    std::cout << "Server stoped!" << std::endl;
 }
